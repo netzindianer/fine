@@ -37,6 +37,7 @@ class f_image
     protected $_file;
     protected $_typeLoaded;
     protected $_type;
+    protected $_transparency;
     protected $_error             = array();
     protected $_jpgQuality        = 90;
     protected $_renderSendsHeader = true;
@@ -83,7 +84,7 @@ class f_image
      */
     public function copy()
     {
-        $copy = imagecreatetruecolor($this->width(), $this->height());
+        $copy = $this->_createResoruce($this->width(), $this->height());
         imagecopy($copy, $this->resource(), 0, 0, 0, 0, $this->width(), $this->height());
         
 	$image = new f_image();
@@ -133,6 +134,23 @@ class f_image
         
         return $this;
     }
+    
+    /**
+     * Ustala/pobiera zachowanie przezroczystosci
+     * 
+     * @param boolean $bTransparency
+     * @return boolean|f_image
+     */
+    public function transparency($bTransparency = null)
+    {
+        if (func_num_args() == 0) {
+            return $this->_transparency;
+        }
+
+        $this->_transparency = $bTransparency;
+
+        return $this;
+    }
 
     /**
      * Zwraca szerokosc obrazu
@@ -155,7 +173,7 @@ class f_image
     }
 
     /**
-     *  Ustala/pobiera jakosc obrazu dla formatu jpg
+     * Ustala/pobiera jakosc obrazu dla formatu jpg
      *
      * @param int $iJpgQuality Jakosc jpg <0,100>
      * @return int|this
@@ -278,6 +296,9 @@ class f_image
 
         $status = null;
 
+        // transparency
+        $this->_setTransparency();
+        
 	switch ($this->_resolveType()) {
 
             case self::TYPE_GIF:
@@ -347,6 +368,9 @@ class f_image
             header('Content-Type: ' . $mime);
         }
 
+        // transparency
+        $this->_setTransparency();
+        
         // render
         switch ($type) {
 
@@ -460,7 +484,7 @@ class f_image
             $iWidth  = (int)($iHeight * $this->width() / $this->height());
 	}
 	
-        if (!$rImage = imagecreatetruecolor($iWidth, $iHeight)) {
+        if (!$rImage = $this->_createResoruce($iWidth, $iHeight)) {
             $this->_error(self::ERROR_RESIZE);
             return $this;
 	}
@@ -474,7 +498,16 @@ class f_image
         return $this;
     }
 
-    function thumb($iNewWidth, $iNewHeight = null)
+    /**
+     * $sPosition - set textual values as for CSS:background-position
+     * 
+     * @param int $iNewWidth
+     * @param int $iNewHeight
+     * @param string $sPosition
+     * @return f_image
+     * @throws f_image_exception_invalidArgument
+     */
+    function thumb($iNewWidth, $iNewHeight = null, $sPosition = 'center')
     {
         if (!$this->_resource) {
             $this->_error(self::ERROR_THUMB_NOT_LOADED);
@@ -492,31 +525,66 @@ class f_image
 	if ($iNewHeight <= 0) {
             throw new f_image_exception_invalidArgument("Wysokosc nowego obrazu musi byc wieksza od zera.");
 	}
-
-	$iX = 0;
-	$iY = 0;
-	$iWidth = $iNewWidth;
+        
+        // set new width and height
+        $iWidth = $iNewWidth;
 	$iHeight = (int)($iWidth * $this->height() / $this->width());
-	if ($iHeight <= $iNewHeight) {
+        if ($iHeight <= $iNewHeight) {
             $iHeight = $iNewHeight;
             $iWidth = (int)($iHeight * $this->width() / $this->height());
-            $iX = (int) ($iWidth - $iNewWidth) / 2;
-	}
-	else {
-            $iY = (int) ($iHeight - $iNewHeight) / 2;
-	}
-	
-        if (!$rImage = imagecreatetruecolor($iWidth, $iHeight)) {
+        }
+        
+        list($sX, $sY) = explode(' ', $sPosition);
+
+        // set x- and y-coordinates
+        $iX = -1;
+	$iY = -1;
+
+        switch ($sX) {
+            case 'left';
+                $iX = 0;
+                break;
+            case 'right':
+                $iX = (int) ($iWidth - $iNewWidth);
+                break;
+            case 'center':
+                $iX = (int) ($iWidth - $iNewWidth) / 2;
+                break;
+            case 'top':
+                $iY = 0;
+                break;
+            case 'bottom':
+                $iY = (int) ($iHeight - $iNewHeight);
+                break;
+        }
+        switch ($sY) {
+            case 'top':
+                $iY = 0;
+                break;
+            case 'bottom':
+                $iY = (int) ($iHeight - $iNewHeight);
+                break;
+            default: // if specify one keyword, other is 'center'
+                if ($iX == -1) {
+                    $iX = (int) ($iWidth - $iNewWidth) / 2;
+                }
+                if ($iY == -1) {
+                    $iY = (int) ($iHeight - $iNewHeight) / 2;
+                }
+                break;
+        }
+
+        if (!$rImage = $this->_createResoruce($iWidth, $iHeight)) {
             $this->_error(self::ERROR_THUMB);
             return $this;
 	}
-	
+
         if (!imagecopyresampled($rImage, $this->_resource, 0, 0, 0, 0, $iWidth, $iHeight, $this->width(), $this->height())) {
             $this->_error(self::ERROR_THUMB);
             return $this;
 	}
 	
-        if (!$rImage2 = imagecreatetruecolor($iNewWidth, $iNewHeight)) {
+        if (!$rImage2 = $this->_createResoruce($iNewWidth, $iNewHeight)) {
             $this->_error(self::ERROR_THUMB);
             return $this;
 	}
@@ -536,7 +604,7 @@ class f_image
             $this->_error(self::ERROR_THUMB);
             return $this;
         }
-        if (!$rImage = imagecreatetruecolor($iNewWidth, $iNewHeight)) {
+        if (!$rImage = $this->_createResoruce($iNewWidth, $iNewHeight)) {
             $this->_error(self::ERROR_THUMB);
             return $this;
         }
@@ -561,7 +629,6 @@ class f_image
 
     protected function _resolveType($tDefaultType = null)
     {
-        
         // 1. Podany przez metode `type`
         if ($this->_type !== null) {
             return $this->_type;
@@ -587,5 +654,59 @@ class f_image
         // 5. Super standardowy np. jezeli zaladujemy obraz przez `resource` nie podajac `type`
         return self::TYPE_JPG;
     }
+    
+    protected function _resolveTransparency($tDefaultTransparency = null)
+    {
+        // 1. Podany przez metode `transparency`
+        if ($this->_transparency !== null) {
+            return $this->_transparency;
+        }
 
+        // 2. Standardowy z argumentu
+        if ($tDefaultTransparency !== null) {
+            return $tDefaultTransparency;
+        }
+        
+        // 3. Wedlug typu
+        $type = $this->_resolveType();
+        if ($type && ($type == self::TYPE_GIF || $type == self::TYPE_PNG)) {
+            return true;
+        }
+
+        // 4. Super standardowy np. jezeli zaladujemy obraz przez `resource` nie podajac `transparency`
+        return false;
+    }
+
+    protected function _setTransparency()
+    {
+        $transparency = $this->_resolveTransparency();
+
+        imagealphablending($this->_resource, !$transparency);
+        imagesavealpha($this->_resource, $transparency);
+    }
+    
+    protected function _createResoruce($iWidth, $iHeight)
+    {
+        if (!$rImage = imagecreatetruecolor($iWidth, $iHeight)) {
+            return false;
+        }
+
+        if ($this->_resolveTransparency()) {
+            $transparencyIndex = imagecolortransparent($this->_resource);
+            $transparencyColor = array('red' => 255, 'green' => 255, 'blue' => 255);
+            
+            if ($transparencyIndex >= 0) {
+                $transparencyColor = imagecolorsforindex($this->_resource, $transparencyIndex);
+            }
+            
+            $transparency = imagecolorallocate($rImage, $transparencyColor['red'], $transparencyColor['green'], $transparencyColor['blue']);
+            imagealphablending($rImage, false);
+            imagefilledrectangle($rImage, 0, 0, $iWidth, $iHeight, $transparency);
+            imagecolortransparent($rImage, $transparency);
+            imagesavealpha($rImage, true);
+        }
+        
+        return $rImage;
+    }
+    
 }
