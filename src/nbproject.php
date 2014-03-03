@@ -29,7 +29,6 @@
  * @property f_c_helper_microtime $microtime
  * @property f_c_helper_notFound $notFound
  * @method void notFound() notFound() 404 Not Found
- * @property f_c_helper_pl2en $pl2en
  * @property f_c_helper_redirect $redirect
  * @property f_c_helper_size2byte $size2byte
  * @property f_c_helper_soundexPl $soundexPl

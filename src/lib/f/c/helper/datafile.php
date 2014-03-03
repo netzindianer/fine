@@ -21,7 +21,7 @@ class f_c_helper_datafile extends f_c
      * default logical folder
      */
     const DEFAULT_LOGICAL_FOLDER = 'default';
-    
+
     /**
      * multiple of max id-number in quantity folder
      * if set or diffrent from 0, add quantity folder to path
@@ -73,11 +73,11 @@ class f_c_helper_datafile extends f_c
             list($id, $token, $extOrg, $sTable) = $this->extractData($model);
 
             $config = $this->getImgConfig($sTable, $sSize);
-
+            
             if ($config) {
                 $oImg = new f_image();
                 $oImg->load($this->getPath($model) . "{$id}_{$token}.{$extOrg}")
-                     ->{$config['type']}($config['w'], $config['h'], $config['extend']);
+                     ->{$config['type']}($config['w'], $config['h'], ($config['type'] == 'resize' ? $config['extend'] : $config['position']));
 
                 $ext = (isset($config['ext'])) ? $config['ext'] : $extOrg;
                 $oImg->type($ext);
@@ -98,7 +98,7 @@ class f_c_helper_datafile extends f_c
                 if ($bSaveFile) {
                     $sFilePath = $this->getPath($model, self::PUBLIC_FOLDER);
                     
-                    if ($this->_setFolders($sFilePath)) {
+                    if ($this->setDirectory($sFilePath)) {
                         $oImg->save("{$sFilePath}{$id}_{$token}_{$sSize}.{$ext}");
                     }
                 }
@@ -129,7 +129,7 @@ class f_c_helper_datafile extends f_c
             if ($config) {
                 $oImg = new f_image();
                 $oImg->load(self::PUBLIC_FOLDER . '/' . self::TMP_FOLDER . "/{$token}__{$name}")
-                     ->{$config['type']}($config['w'], $config['h'], !$config['extend']);
+                     ->{$config['type']}($config['w'], $config['h'], ($config['type'] == 'resize' ? !$config['extend'] : $config['position']));
 
                 if ($bSaveFile) {
                     $oImg->save(self::PUBLIC_FOLDER . '/' . self::TMP_FOLDER . "/{$token}_{$option}_{$name}");
@@ -182,7 +182,7 @@ class f_c_helper_datafile extends f_c
     }
     
     /**
-     * check if it's full or short image configuration
+     * check if it's full or shortened image configuration
      * and get it
      * 
      * @param string $sTable
@@ -253,55 +253,77 @@ class f_c_helper_datafile extends f_c
      */
     public function storeFile(f_m $model, $sSrcFilePath)
     {
-        if (is_file($sSrcFilePath)) {
-            $resource = file_get_contents($sSrcFilePath);
+        // get file
+        $resource = file_get_contents($sSrcFilePath);
+            
+        if ($resource) {
+            $table = $model->table();
+            
+            if (!$model->id()) {
+                return false;
+            }
 
-            if ($resource) {
-                $table = $model->table();
-
-                if (!$model->id()) {
-                    return false;
+            $bFlagSaveModel = false;
+            // create file token
+            if (!$model->{$table . '_token'}) {
+                $model->{$table . '_token'} = $this->token();
+                $bFlagSaveModel = true;
+            }
+            // get file extension
+            if (!$model->{$table . '_ext'}) {
+                $ext = pathinfo($sSrcFilePath, PATHINFO_EXTENSION);
+                $model->{$table . '_ext'} = $ext ? $ext : '';
+                $bFlagSaveModel = true;
+            }
+            // get file name
+            if ($model->isField($table . '_name')) {
+                if (!$model->{$table . '_name'}) {
+                    $name =  pathinfo($sSrcFilePath, PATHINFO_BASENAME);
+                    $model->{$table . '_name'} = $name ? $name : '';
+                    $bFlagSaveModel = true;
                 }
+            }
+            // get default folder
+            if ($model->isField($table . '_folder')) {
+                if (!$model->{$table . '_folder'}) {
+                    $model->{$table . '_folder'} = self::DEFAULT_LOGICAL_FOLDER;
+                    $bFlagSaveModel = true;
+                }
+            }
+
+            list($id, $token, $ext) = $this->extractData($model);
+            $sFilePath = $this->getPath($model);
+
+            if ($this->setDirectory($sFilePath)) { 
+                $sFileName = "{$sFilePath}{$id}_{$token}" . ($ext ? '.' . $ext : '');
                 
-                $bFlagSaveModel = false;
-                if (!$model->{$table . '_token'}) {
-                    $model->{$table . '_token'} = $this->token();
-                    $bFlagSaveModel = true;
-                }
-                if (!$model->{$table . '_ext'}) {
-                    $ext = pathinfo($sSrcFilePath, PATHINFO_EXTENSION);
-                    $model->{$table . '_ext'} = $ext ? $ext : '';
-                    $bFlagSaveModel = true;
-                }
-                if ($model->isField($table . '_folder')) {
-                    if (!$model->{$table . '_folder'}) {
-                        $model->{$table . '_folder'} = self::DEFAULT_LOGICAL_FOLDER;
-                        $bFlagSaveModel = true;
+                // save file
+                if (file_put_contents($sFileName, $resource)) {
+                    
+                    // get size of upload file
+                    if ($model->isField($table . '_size')) {
+                        if (!$model->{$table . '_size'}) {
+                            $size = filesize($sFileName);
+                            $model->{$table . '_size'} = $size ? $size : 0;
+                            $bFlagSaveModel = true;
+                        }
                     }
-                }
-                if ($model->isField($table . '_size')) {
-                    if (!$model->{$table . '_size'}) {
-                        $size = filesize($sSrcFilePath);
-                        $model->{$table . '_size'} = $size ? $size : 0;
-                        $bFlagSaveModel = true;
+                    // save new model's data
+                    if ($bFlagSaveModel) {
+                        $model->save();
                     }
-                }
-                if ($bFlagSaveModel) {
-                    $model->save();
-                }
-
-                list($id, $token, $ext) = $this->extractData($model);
-                $sFilePath = $this->getPath($model);
-
-                if ($this->_setFolders($sFilePath)) { 
-                    $sFileName = "{$sFilePath}{$id}_{$token}" . ($ext ? '.' . $ext : '');
-                    if (file_put_contents($sFileName, $resource)) {
-                        return true;
+                    
+                    // remove tmp file if exists
+                    if (strncmp(pathinfo($sSrcFilePath, PATHINFO_DIRNAME), self::PUBLIC_FOLDER . '/' . self::TMP_FOLDER, strlen(self::PUBLIC_FOLDER . '/' . self::TMP_FOLDER)) == 0 
+                     && is_file($sSrcFilePath)) {
+                        unlink($sSrcFilePath);
                     }
+                    
+                    return true;
                 }
             }
         }
-        
+
         return false;
     }
     
@@ -320,7 +342,7 @@ class f_c_helper_datafile extends f_c
             if (!$model->id()) {
                 return false;
             }
-            
+
             $bFlagSaveModel = false;
             if (!$model->{$table . '_token'}) {
                 $model->{$table . '_token'} = $this->token();
@@ -355,7 +377,7 @@ class f_c_helper_datafile extends f_c
             list($id, $token, $ext) = $this->extractData($model);
             $sFilePath = $this->getPath($model);
 
-            if ($this->_setFolders($sFilePath)) {
+            if ($this->setDirectory($sFilePath)) {
                 $sImgName = "{$sFilePath}{$id}_{$token}.{$ext}";
                 $img->save($sImgName);
                 
@@ -589,7 +611,7 @@ class f_c_helper_datafile extends f_c
      */
     protected function _resolveImgSize($sSize)
     {
-        $pattern = '/(?P<w>[0-9]{1,4})x?(?P<h>[0-9]{0,4})([rt]?)(q?)(?P<q>[0-9]{0,3})/';
+        $pattern = '/(?P<w>[0-9]{1,4})x?(?P<h>[0-9]{0,4})([rt]?)(q?)(?P<q>[0-9]{0,3})(e?)(?P<e>[01]{0,1})(p?)(?P<p>[lrtbc]{0,2})/';
         preg_match($pattern, $sSize, $matches);
 
         $aReturn = array();
@@ -604,36 +626,38 @@ class f_c_helper_datafile extends f_c
             }
         }
         
-        if (isset($matches[3]) && ($matches[3] === 't')) {
-            $aReturn['type'] = 'thumb';
-            $aReturn['extend'] = false;
-        }
-        else {
+        if (isset($matches[3]) && ($matches[3] === 'r')) {
             $aReturn['type'] = 'resize';
             $aReturn['extend'] = true;
+        }
+        else {
+            $aReturn['type'] = 'thumb';
         }
         
         if (isset($matches[4]) && $matches[4] == 'q' && isset($matches['q'])) {
             $aReturn['quality'] = $matches['q'];
         }
-
-        return $aReturn;
-    }
-    
-    /**
-     * do exist folders from file path
-     * if not create them
-     * 
-     * @param string $dirname
-     * @return boolean
-     */
-    protected function _setFolders($dirname)
-    {
-        if (!file_exists($dirname)) {
-            return mkdir($dirname, 0777, true);
+        
+        if (isset($matches[6]) && $matches[6] == 'e' && isset($matches['e'])) {
+            $aReturn['extend'] = (bool)$matches['e'];
         }
         
-        return true;
+        if (isset($matches[8]) && $matches[8] == 'p' && isset($matches['p'])) {
+            switch (substr($matches['p'], 0, 1)) {
+                case 'l': $aReturn['position'] = 'left'; break;
+                case 'r': $aReturn['position'] = 'right'; break;
+                case 'c': $aReturn['position'] = 'center'; break;
+                case 't': $aReturn['position'] = 'top'; break;
+                case 'b': $aReturn['position'] = 'bottom'; break;
+            }
+            switch (substr($matches['p'], 1, 2)) {
+                case 't': $aReturn['position'] .= ' top'; break;
+                case 'b': $aReturn['position'] .= ' bottom'; break;
+                case 'c': $aReturn['position'] .= ' center'; break;
+            }
+        }
+        
+        return $aReturn;
     }
     
 }
