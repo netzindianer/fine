@@ -1,5 +1,31 @@
 <?php
 
+/**
+ * Obsługa danych plikowych
+ * ========================
+ * 
+ * - wspolpraca z f_m
+ * - skladowanie plikow do folderu z danymi, dzielenie na foldery logiczne i ilosciowe
+ * - manipulacje na obrazach - resize, thumb
+ * - manipulacje na obrazach data/tmp, data/dvc
+ * 
+ * IMSS - Image Manipulation Short Syntax
+ * --------------------------------------
+ * 
+ * Format: w[xh][r|t][q85][e0][p__]
+ * 
+ * w - wartosc, szerokosc obrazu, format [0-9]{1,4}
+ * x - stala oddzielajaca szerokosc od wysokosci
+ * h - wartosc, wysokosc obrazu, format [0-9]{1,4}, standardowa wartosc rowna szerokosci obrazu
+ * t - stala, thumb, standardowa metoda manipulacji
+ * r - stala, resize
+ * q - parametr, jakosc obrazu, tylko dla jpg, w %
+ * e - parametr, extend, wartosc 0 lub 1, tylko dla metody resize
+ * p - parametr, position przy crop, tylko dla metody thumb
+ *     
+ * wartosci w nawiasach kwadratowych opcjonalne
+ * 
+ */
 class f_c_helper_datafile extends f_c
 {
     /**
@@ -182,7 +208,7 @@ class f_c_helper_datafile extends f_c
     }
     
     /**
-     * check if it's full or shortened image configuration
+     * check if it's full or short image configuration
      * and get it
      * 
      * @param string $sTable
@@ -217,9 +243,9 @@ class f_c_helper_datafile extends f_c
         list($id, $token, $ext, $table) = $this->extractData($model);
         
         // orginal file
-        $sFilePath = $this->getPath($model);
-        if (file_exists("{$sFilePath}{$id}_{$token}.{$ext}")) {
-            unlink("{$sFilePath}{$id}_{$token}.{$ext}");
+        $sFile = '.' . $this->uri($model);
+        if (file_exists($sFile)) {
+            unlink($sFile);
         }
         
         // scaled file
@@ -256,13 +282,13 @@ class f_c_helper_datafile extends f_c
         // get file
         $resource = file_get_contents($sSrcFilePath);
             
-        if ($resource) {
+        if (is_string($resource)) {
             $table = $model->table();
             
             if (!$model->id()) {
                 return false;
             }
-
+            
             $bFlagSaveModel = false;
             // create file token
             if (!$model->{$table . '_token'}) {
@@ -294,11 +320,11 @@ class f_c_helper_datafile extends f_c
             list($id, $token, $ext) = $this->extractData($model);
             $sFilePath = $this->getPath($model);
 
-            if ($this->setDirectory($sFilePath)) { 
+            if ($this->setDirectory($sFilePath)) {
                 $sFileName = "{$sFilePath}{$id}_{$token}" . ($ext ? '.' . $ext : '');
                 
                 // save file
-                if (file_put_contents($sFileName, $resource)) {
+                if (is_int(file_put_contents($sFileName, $resource))) {
                     
                     // get size of upload file
                     if ($model->isField($table . '_size')) {
@@ -312,13 +338,13 @@ class f_c_helper_datafile extends f_c
                     if ($bFlagSaveModel) {
                         $model->save();
                     }
-                    
+
                     // remove tmp file if exists
                     if (strncmp(pathinfo($sSrcFilePath, PATHINFO_DIRNAME), self::PUBLIC_FOLDER . '/' . self::TMP_FOLDER, strlen(self::PUBLIC_FOLDER . '/' . self::TMP_FOLDER)) == 0 
                      && is_file($sSrcFilePath)) {
                         unlink($sSrcFilePath);
                     }
-                    
+
                     return true;
                 }
             }
@@ -502,7 +528,7 @@ class f_c_helper_datafile extends f_c
      * return uri path to file
      * 
      * @param f_m/array $aoModel
-     * @return string /data/{model}/{logicalFolder}/{quantityFolder}/{id}_{token}_{size}.{ext}
+     * @return string /[data|cdn]/{model}/{logicalFolder}/{quantityFolder}/{id}_{token}_{size}.{ext}
      */
     public function uri($aoModel, $sSize = null)
     {
@@ -512,7 +538,7 @@ class f_c_helper_datafile extends f_c
         return substr($sFilePath,1) 
             . "{$id}_{$token}"
             . ($sSize ? "_{$sSize}" : "")
-            . ".{$ext}";
+            . ($ext ? ".{$ext}" : "");
     }
     
     /**

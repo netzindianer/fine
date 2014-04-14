@@ -8,6 +8,7 @@ class f_event
     protected $_val;
     protected $_cancel = false;
     protected $_dispatcher;
+    protected $_previous;
 
     /**
      * Statyczny konstruktor
@@ -65,6 +66,15 @@ class f_event
             return $this->_cancel;
         }
         $this->_cancel = (boolean)$bCancel;
+        return $this;
+    }
+
+    public function previous(f_event $previous = null)
+    {
+        if (func_num_args() == 0) {
+            return $this->_previous;
+        }
+        $this->_previous = $previous;
         return $this;
     }
 
