@@ -25,13 +25,13 @@ return array(
             'log'        => true,
             'throwError' => 0,
         ),
-        'error_notify' => array(
-            'path' => '', /*fe. /statistic/logs/error_log */
-            'email' => array(
+        'error_notify' => array( // more info /app/c/cron.php
+            'log'   => '', // (optional) fe. statistic/logs/error_log
+            'tmp'   => '', // (optional) fe. tmp/error_notify/lastchecked
+            'email' => array( // (required)
                 /* fe.
-                'xxx1@xxxx.xx',
-                'xxx2@xxxx.xx',
-                 * 
+                 * 'xxx1@xxxx.xx',
+                 * 'xxx2@xxxx.xx',
                  */
              )
         ),
