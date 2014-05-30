@@ -753,7 +753,12 @@ class f_m implements IteratorAggregate, Countable
 
         $aSet = array();
         foreach ($aData as $k => $v) {
-            $aSet[$k] = "`$k` = '{$this->_db->escape($v)}'";
+            if (is_int($k)) {
+                $aSet[] = $v;
+            }
+            else {
+                $aSet[$k] = "`$k` = '{$this->_db->escape($v)}'";
+            }
         }
         if ($this->_hardlink) {
             foreach ($this->_hardlink as $k => $v) {
