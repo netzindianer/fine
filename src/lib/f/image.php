@@ -12,34 +12,32 @@
  */
 class f_image
 {
-    
+
     const TYPE_GIF = 'gif';
     const TYPE_JPG = 'jpg';
     const TYPE_PNG = 'png';
-
     const MIMETYPE_GIF = 'image/gif';
     const MIMETYPE_JPG = 'image/jpeg';
     const MIMETYPE_PNG = 'image/png';
-
-    const ERROR_LOAD_NO_FILE          = 'ERROR_LOAD_NO_FILE';
+    const ERROR_LOAD_NO_FILE = 'ERROR_LOAD_NO_FILE';
     const ERROR_LOAD_UNSUPPORTED_TYPE = 'ERROR_LOAD_UNSUPPORTED_TYPE';
-    const ERROR_LOAD_NOT_LOADED       = 'ERROR_LOAD_NOT_LOADED';
-    const ERROR_SAVE_NOT_LOADED       = 'ERROR_SAVE_NOT_LOADED';
-    const ERROR_SAVE_NOT_SAVED        = 'ERROR_SAVE_NOT_SAVED';
+    const ERROR_LOAD_NOT_LOADED = 'ERROR_LOAD_NOT_LOADED';
+    const ERROR_SAVE_NOT_LOADED = 'ERROR_SAVE_NOT_LOADED';
+    const ERROR_SAVE_NOT_SAVED = 'ERROR_SAVE_NOT_SAVED';
     const ERROR_SAVE_UNSUPPORTED_TYPE = 'ERROR_SAVE_UNSUPPORTED_TYPE';
-    const ERROR_RENDER_NOT_LOADED     = 'ERROR_RENDER_NOT_LOADED';
-    const ERROR_RESIZE_NOT_LOADED     = 'ERROR_RESIZE_NOT_LOADED';
-    const ERROR_RESIZE                = 'ERROR_RESIZE';
-    const ERROR_THUMB_NOT_LOADED      = 'ERROR_THUMB_NOT_LOADED';
-    const ERROR_THUMB                 = 'ERROR_THUMB';
+    const ERROR_RENDER_NOT_LOADED = 'ERROR_RENDER_NOT_LOADED';
+    const ERROR_RESIZE_NOT_LOADED = 'ERROR_RESIZE_NOT_LOADED';
+    const ERROR_RESIZE = 'ERROR_RESIZE';
+    const ERROR_THUMB_NOT_LOADED = 'ERROR_THUMB_NOT_LOADED';
+    const ERROR_THUMB = 'ERROR_THUMB';
 
     protected $_resource;
     protected $_file;
     protected $_typeLoaded;
     protected $_type;
     protected $_transparency;
-    protected $_error             = array();
-    protected $_jpgQuality        = 90;
+    protected $_error = array();
+    protected $_jpgQuality = 90;
     protected $_renderSendsHeader = true;
 
     /* Object managment */
@@ -54,7 +52,7 @@ class f_image
     {
         return new self($config);
     }
-    
+
     /**
      * Konstruktor
      * 
@@ -86,12 +84,12 @@ class f_image
     {
         $copy = $this->_createResoruce($this->width(), $this->height());
         imagecopy($copy, $this->resource(), 0, 0, 0, 0, $this->width(), $this->height());
-        
-	$image = new f_image();
-	$image->resource($copy);
+
+        $image = new f_image();
+        $image->resource($copy);
         $image->file($this->file());
 
-	return $image;
+        return $image;
     }
 
     /* Image properties */
@@ -111,7 +109,7 @@ class f_image
 
         // setter
         $this->_file = $sFile;
-        
+
         return $this;
     }
 
@@ -125,16 +123,14 @@ class f_image
     public function type($tType = null)
     {
         if (func_num_args() == 0) {
-            return strlen($this->_type) > 0
-                    ? $this->_type
-                    : $this->_typeLoaded;
+            return strlen($this->_type) > 0 ? $this->_type : $this->_typeLoaded;
         }
 
         $this->_type = $tType;
-        
+
         return $this;
     }
-    
+
     /**
      * Ustala/pobiera zachowanie przezroczystosci
      * 
@@ -159,7 +155,7 @@ class f_image
      */
     public function width()
     {
-	return imagesx($this->_resource);
+        return imagesx($this->_resource);
     }
 
     /**
@@ -185,7 +181,7 @@ class f_image
         }
 
         $this->_jpgQuality = $iJpgQuality;
-        
+
         return $this;
     }
 
@@ -221,7 +217,6 @@ class f_image
         }
     }
 
-
     /**
      * Laduje obraz z pliku
      *
@@ -231,46 +226,46 @@ class f_image
     function load($sFile = null)
     {
         $this->_error = array();
-        
+
         if (func_num_args() == 1) {
             $this->file($sFile);
         }
 
-	if (!is_file($this->_file)) {
+        if (!is_file($this->_file)) {
             $this->_error(self::ERROR_LOAD_NO_FILE);
             return $this;
-	}
+        }
 
-	list(,,$type) = getimagesize($this->_file);
+        list(,, $type) = getimagesize($this->_file);
 
-	switch ($type) {
-            
+        switch ($type) {
+
             case IMAGETYPE_GIF:
-		$this->_resource   = imagecreatefromgif($this->_file);
+                $this->_resource = imagecreatefromgif($this->_file);
                 $this->_typeLoaded = self::TYPE_GIF;
-		break;
+                break;
 
             case IMAGETYPE_JPEG:
-                $this->_resource   = imagecreatefromjpeg($this->_file);
+                $this->_resource = imagecreatefromjpeg($this->_file);
                 $this->_typeLoaded = self::TYPE_JPG;
-		break;
+                break;
 
             case IMAGETYPE_PNG:
-            	$this->_resource   = imagecreatefrompng($this->_file);
+                $this->_resource = imagecreatefrompng($this->_file);
                 $this->_typeLoaded = self::TYPE_PNG;
-		break;
+                break;
 
             default:
-		$this->_error(self::ERROR_LOAD_UNSUPPORTED_TYPE);
+                $this->_error(self::ERROR_LOAD_UNSUPPORTED_TYPE);
                 return $this;
-	}
+        }
 
-	if (!$this->_resource) {
+        if (!$this->_resource) {
             $this->_typeLoaded = null;
             $this->_error(self::ERROR_LOAD_NOT_LOADED);
-	}
+        }
 
-	return $this;
+        return $this;
     }
 
     /**
@@ -284,10 +279,10 @@ class f_image
     {
 
         // is resource loaded?
-	if (!$this->_resource) {
+        if (!$this->_resource) {
             $this->_error(self::ERROR_SAVE_NOT_LOADED);
             return $this;
-	}
+        }
 
         // file
         if ($sFile !== null) {
@@ -298,31 +293,31 @@ class f_image
 
         // transparency
         $this->_setTransparency();
-        
-	switch ($this->_resolveType()) {
+
+        switch ($this->_resolveType()) {
 
             case self::TYPE_GIF:
                 $status = imagegif($this->_resource, $this->_file);
-		break;
+                break;
 
             case self::TYPE_JPG:
                 $status = imagejpeg($this->_resource, $this->_file, $this->_jpgQuality);
-		break;
+                break;
 
             case self::TYPE_PNG:
                 $status = imagepng($this->_resource, $this->_file);
-		break;
+                break;
 
             default:
                 $this->_error(self::ERROR_SAVE_UNSUPPORTED_TYPE);
-		return $this;
+                return $this;
         }
 
         if ($status === false) {
             $this->_error(self::ERROR_SAVE_NOT_SAVED);
         }
 
-	return $this;
+        return $this;
     }
 
     /**
@@ -344,10 +339,10 @@ class f_image
     public function render($tType = null)
     {
         // is resource loaded?
-	if (!$this->_resource) {
+        if (!$this->_resource) {
             $this->_error(self::ERROR_RENDER_NOT_LOADED);
             return $this;
-	}
+        }
 
         // type
         $type = $this->_resolveType($tType);
@@ -370,7 +365,7 @@ class f_image
 
         // transparency
         $this->_setTransparency();
-        
+
         // render
         switch ($type) {
 
@@ -387,9 +382,8 @@ class f_image
                 break;
         }
 
-	return $this;
+        return $this;
     }
-
 
     public function renderGif()
     {
@@ -418,9 +412,9 @@ class f_image
             return $this->_resource;
         }
 
-        $this->_error    = array();
-	$this->_resource = $rImageResourceIdentifier;
-	
+        $this->_error = array();
+        $this->_resource = $rImageResourceIdentifier;
+
         return $this;
     }
 
@@ -433,12 +427,12 @@ class f_image
     {
         if (!$this->_resource) {
             return $this;
-	}
-        
-	imagedestroy($this->_resource);
-	$this->_resource = null;
-        $this->_error    = array();
-	
+        }
+
+        imagedestroy($this->_resource);
+        $this->_resource = null;
+        $this->_error = array();
+
         return $this;
     }
 
@@ -451,50 +445,50 @@ class f_image
      */
     public function error()
     {
-	return $this->_error;
+        return $this->_error;
     }
 
     /* Image processing */
-    
+
     function resize($iNewWidth, $iNewHeight, $bExtend = true)
     {
         if (!$this->_resource) {
             $this->_error(self::ERROR_RESIZE_NOT_LOADED);
             return $this;
-	}
+        }
 
-	if ($iNewWidth <= 0) {
+        if ($iNewWidth <= 0) {
             throw new f_image_exception_invalidArgument("Szerokosc nowego obrazu musi byc wieksza od zera.");
-	}
+        }
 
-	if ($iNewHeight <= 0) {
+        if ($iNewHeight <= 0) {
             throw new f_image_exception_invalidArgument("Wysokosc nowego obrazu musi byc wieksza od zera.");
-	}
+        }
 
-	if ($bExtend === false) {
+        if ($bExtend === false) {
             if ($this->width() <= $iNewWidth && $this->height() <= $iNewHeight) {
                 return $this;
             }
-	}
-	
-        $iWidth  = $iNewWidth;
-	$iHeight = (int)($iWidth * $this->height() / $this->width());
-	if ($iHeight > $iNewHeight) {
+        }
+
+        $iWidth = $iNewWidth;
+        $iHeight = (int) ($iWidth * $this->height() / $this->width());
+        if ($iHeight > $iNewHeight) {
             $iHeight = $iNewHeight;
-            $iWidth  = (int)($iHeight * $this->width() / $this->height());
-	}
-	
+            $iWidth = (int) ($iHeight * $this->width() / $this->height());
+        }
+
         if (!$rImage = $this->_createResoruce($iWidth, $iHeight)) {
             $this->_error(self::ERROR_RESIZE);
             return $this;
-	}
-	
+        }
+
         if (!imagecopyresampled($rImage, $this->_resource, 0, 0, 0, 0, $iWidth, $iHeight, $this->width(), $this->height())) {
             $this->_error(self::ERROR_RESIZE);
             return $this;
-	}
-        $this->_resource  = $rImage;
-	
+        }
+        $this->_resource = $rImage;
+
         return $this;
     }
 
@@ -512,33 +506,70 @@ class f_image
         if (!$this->_resource) {
             $this->_error(self::ERROR_THUMB_NOT_LOADED);
             return $this;
-	}
+        }
 
-	if ($iNewHeight === null) {
+        if ($iNewHeight === null) {
             $iNewHeight = $iNewWidth;
-	}
+        }
 
-	if ($iNewWidth <= 0) {
+        if ($iNewWidth <= 0) {
             throw new f_image_exception_invalidArgument("Szerokosc nowego obrazu musi byc wieksza od zera.");
-	}
+        }
 
-	if ($iNewHeight <= 0) {
+        if ($iNewHeight <= 0) {
             throw new f_image_exception_invalidArgument("Wysokosc nowego obrazu musi byc wieksza od zera.");
-	}
-        
+        }
+
         // set new width and height
         $iWidth = $iNewWidth;
-	$iHeight = (int)($iWidth * $this->height() / $this->width());
+        $iHeight = (int) ($iWidth * $this->height() / $this->width());
         if ($iHeight <= $iNewHeight) {
             $iHeight = $iNewHeight;
-            $iWidth = (int)($iHeight * $this->width() / $this->height());
+            $iWidth = (int) ($iHeight * $this->width() / $this->height());
         }
-        
+
         list($sX, $sY) = explode(' ', $sPosition);
 
         // set x- and y-coordinates
         $iX = -1;
-	$iY = -1;
+        $iY = -1;
+
+        // percentage support -------------------------------------------
+        $percentX = 0;
+        $percentY = 0;
+        $percent = substr_count($sPosition, '%');
+        if ($percent > 1) { // if both percents
+            $percentX = (int) trim(str_replace('%', '', $sX));
+            $sX = 'percent';
+            $percentY = (int) trim(str_replace('%', '', $sY));
+            $sY = 'percent';
+        } else if ($percent == 1) { // if one percent
+            if (!$sY) { // if only one percent, for both axis
+                $percentX = $percentY = (int) trim(str_replace('%', '', $sX));
+                $sX = $sY = 'percent';
+            } else if (strstr($sX, '%')) { // if first has percent
+                $percentX = (int) trim(str_replace('%', '', $sX));
+                $sX = 'percent';
+            } else if (strstr($sY, '%')) { // if second has percent
+                $percentY = (int) trim(str_replace('%', '', $sY));
+                $sY = 'percent';
+            }
+        }
+        $moveX = 0;
+        $moveY = 0;
+        if ($sX == 'percent') {
+            $moveX = (int) ($percentX * $iNewWidth) / 100;
+            if ($iNewWidth + $moveX > $iWidth) { // if too much move x
+                $sX = 'right';
+            }
+        }
+        if ($sY == 'percent') {
+            $moveY = (int) ($percentY * $iNewHeight) / 100;
+            if ($iNewHeight + $moveY > $iHeight) { // if too much move y
+                $sY = 'bottom';
+            }
+        }
+        // --------------------------------------------------------------
 
         switch ($sX) {
             case 'left';
@@ -556,6 +587,9 @@ class f_image
             case 'bottom':
                 $iY = (int) ($iHeight - $iNewHeight);
                 break;
+            case 'percent':
+                $iX = $moveX;
+                break;
         }
         switch ($sY) {
             case 'top':
@@ -563,6 +597,9 @@ class f_image
                 break;
             case 'bottom':
                 $iY = (int) ($iHeight - $iNewHeight);
+                break;
+            case 'percent':
+                $iY = $moveY;
                 break;
             default: // if specify one keyword, other is 'center'
                 if ($iX == -1) {
@@ -577,29 +614,29 @@ class f_image
         if (!$rImage = $this->_createResoruce($iWidth, $iHeight)) {
             $this->_error(self::ERROR_THUMB);
             return $this;
-	}
+        }
 
         if (!imagecopyresampled($rImage, $this->_resource, 0, 0, 0, 0, $iWidth, $iHeight, $this->width(), $this->height())) {
             $this->_error(self::ERROR_THUMB);
             return $this;
-	}
-	
+        }
+
         if (!$rImage2 = $this->_createResoruce($iNewWidth, $iNewHeight)) {
             $this->_error(self::ERROR_THUMB);
             return $this;
-	}
-	
-        if (!imagecopy($rImage2, $rImage, 0, 0, $iX, $iY,  $iNewWidth, $iNewHeight)) {
+        }
+
+        if (!imagecopy($rImage2, $rImage, 0, 0, $iX, $iY, $iNewWidth, $iNewHeight)) {
             $this->_error(self::ERROR_THUMB);
             return $this;
-	}
-	$this->_resource  = $rImage2;
-	
+        }
+        $this->_resource = $rImage2;
+
         return $this;
     }
-        
+
     function cutAndResize($x1, $y1, $x2, $y2, $iNewWidth, $iNewHeight)
-    {     
+    {
         if ($iNewWidth <= 0 || $iNewHeight <= 0) {
             $this->_error(self::ERROR_THUMB);
             return $this;
@@ -608,15 +645,15 @@ class f_image
             $this->_error(self::ERROR_THUMB);
             return $this;
         }
-        if (!imagecopyresampled($rImage, $this->_resource, 0,0, $x1, $y1, $iNewWidth, $iNewHeight, $x2 - $x1, $y2 - $y1)) {
+        if (!imagecopyresampled($rImage, $this->_resource, 0, 0, $x1, $y1, $iNewWidth, $iNewHeight, $x2 - $x1, $y2 - $y1)) {
             $this->_error(self::ERROR_THUMB);
             return $this;
         }
 
-        $this->_width  = $iNewWidth;
+        $this->_width = $iNewWidth;
         $this->_height = $iNewHeight;
-        $this->_resource  = $rImage;
-        
+        $this->_resource = $rImage;
+
         return $this;
     }
 
@@ -629,6 +666,7 @@ class f_image
 
     protected function _resolveType($tDefaultType = null)
     {
+
         // 1. Podany przez metode `type`
         if ($this->_type !== null) {
             return $this->_type;
@@ -636,7 +674,7 @@ class f_image
 
         // 2. Wedlug rozszerzenia
         $parts = explode('.', $this->_file);
-        $type  = $this->extension2Type(strtolower(end($parts))); // wedlug rozszerzenia
+        $type = $this->extension2Type(strtolower(end($parts))); // wedlug rozszerzenia
         if ($type !== null) {
             return $type;
         }
@@ -654,7 +692,7 @@ class f_image
         // 5. Super standardowy np. jezeli zaladujemy obraz przez `resource` nie podajac `type`
         return self::TYPE_JPG;
     }
-    
+
     protected function _resolveTransparency($tDefaultTransparency = null)
     {
         // 1. Podany przez metode `transparency`
@@ -666,7 +704,7 @@ class f_image
         if ($tDefaultTransparency !== null) {
             return $tDefaultTransparency;
         }
-        
+
         // 3. Wedlug typu
         $type = $this->_resolveType();
         if ($type && ($type == self::TYPE_GIF || $type == self::TYPE_PNG)) {
@@ -684,7 +722,7 @@ class f_image
         imagealphablending($this->_resource, !$transparency);
         imagesavealpha($this->_resource, $transparency);
     }
-    
+
     protected function _createResoruce($iWidth, $iHeight)
     {
         if (!$rImage = imagecreatetruecolor($iWidth, $iHeight)) {
@@ -694,19 +732,19 @@ class f_image
         if ($this->_resolveTransparency()) {
             $transparencyIndex = imagecolortransparent($this->_resource);
             $transparencyColor = array('red' => 255, 'green' => 255, 'blue' => 255);
-            
+
             if ($transparencyIndex >= 0) {
                 $transparencyColor = imagecolorsforindex($this->_resource, $transparencyIndex);
             }
-            
+
             $transparency = imagecolorallocate($rImage, $transparencyColor['red'], $transparencyColor['green'], $transparencyColor['blue']);
             imagealphablending($rImage, false);
             imagefilledrectangle($rImage, 0, 0, $iWidth, $iHeight, $transparency);
             imagecolortransparent($rImage, $transparency);
             imagesavealpha($rImage, true);
         }
-        
+
         return $rImage;
     }
-    
+
 }
