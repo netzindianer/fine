@@ -2,7 +2,7 @@
 
 class f_c_dispatcher extends f_c
 {
-
+    
     const EVENT_DISPATCHER_PRE  = 'dispatcher_pre';
     const EVENT_DISPATCHER_POST = 'dispatcher_post';
 
@@ -10,11 +10,6 @@ class f_c_dispatcher extends f_c
      * @var string Nazwa kontrolera
      */
     protected $_controller;
-
-    /**
-     * @var string Nazwa akcji
-     */
-    protected $_action;
 
     /**
      * @var string Wzorzez klasy kontrolera, dostepna zmienna "{controller}"
@@ -25,11 +20,6 @@ class f_c_dispatcher extends f_c
      * @var string Nazwa wymaganego iterfejsu dla klasy kontrolera
      */
     protected $_interface = 'f_c_action_interface';
-
-    /**
-     * @var string Wzorzez metody akcji, dostepna zmienna "{action}"
-     */
-    protected $_method = '{action}Action';
 
     /**
      * @var string Sciezka do klas kontrollerow
@@ -70,17 +60,8 @@ class f_c_dispatcher extends f_c
         }
         $this->_controller = $sController;
         return $this;
-    }
-    
-    public function action($sAction = null)
-    {
-        if (func_num_args() == 0) {
-            return $this->_action;
-        }
-        $this->_action = $sAction;
-        return $this;
-    }
-    
+    }    
+        
     public function className($sClass = null)
     {
         if (func_num_args() == 0) {
@@ -99,15 +80,6 @@ class f_c_dispatcher extends f_c
         return $this;
     }
     
-    public function method($sMethod = null)
-    {
-        if (func_num_args() == 0) {
-            return $this->_method;
-        }
-        $this->_method = $sMethod;
-        return $this;
-    }
-    
     public function dir($sDir = null)
     {
         if (func_num_args() == 0) {
@@ -122,12 +94,6 @@ class f_c_dispatcher extends f_c
         return $this->_object;
     }
     
-    public function stack()
-    {
-        return $this->_stack;
-    }
-    
-    
     /**
      * Uruchamia akcje kontrolera
      */
@@ -136,18 +102,26 @@ class f_c_dispatcher extends f_c
         if (!isset($this->_controller[0])) {
             $this->_controller = 'index';
         }
-        if (!isset($this->_action[0])) {
-            $this->_action = 'index';
-        }
+
         $class  = str_replace('{controller}', $this->_controller, $this->_class);
-        $method = str_replace('{action}', $this->_action, $this->_method);
         $file   = $this->_dir . str_replace('_', '/', $class) . '.php';
 
         // check file
         if (! is_file($file)) {
-            throw new f_c_exception_notFound();
+            if ($this->_controller != 'index') {
+                $this->_controller = 'index';
+                $class  = str_replace('{controller}', $this->_controller, $this->_class);
+                $file   = $this->_dir . str_replace('_', '/', $class) . '.php';
+            }
+            else {
+                throw new f_c_exception_notFound();
+            }
         }
 
+        if (! is_file($file)) {
+            throw new f_c_exception_notFound();
+        }
+        
         include $file;
 
         // check class name
@@ -162,42 +136,43 @@ class f_c_dispatcher extends f_c
             throw new f_c_exception_notFound();
         }
 
-        // index method
-        if (! method_exists($this->_object, $method)) {
-            $index = str_replace('{action}', 'index', $this->_method);
-            
-            if (/*$method !== $index &&*/ ! method_exists($this->_object, $index)) {
-                throw new f_c_exception_notFound();
-            }
-            $method        = $index;
-            $this->_action = 'index';
-        }
-
         /** @event dispatcher_pre */
-        if ($this->event->is(self::EVENT_DISPATCHER_PRE)) {
-            $this->event->run($event = new f_event(array('id' => self::EVENT_DISPATCHER_PRE, 'subject' => $this)));
-            if ($event->cancel()) {
-                return;
-            }
-        }
+//        if ($this->event->is(self::EVENT_DISPATCHER_PRE)) {
+//            $this->event->run($event = new f_event(array('id' => self::EVENT_DISPATCHER_PRE, 'subject' => $this)));
+//            if ($event->cancel()) {
+//                return;
+//            }
+//        }
 
         // call
-        $this->_object->{$method}();
-
-        // log stack
-        $this->_stack[] = array(
-            'controller' => $this->_controller,
-            'action'     => $this->_action,
-            'class'      => $this->_class,
-            'interface'  => $this->_interface,
-            'method'     => $this->_method,
-            'dir'        => $this->_dir,
-        );
-
-        /** @event dispatcher_end */
-        if ($this->event->is(self::EVENT_DISPATCHER_POST)) {
-            $this->event->run(new f_event(array('id' => self::EVENT_DISPATCHER_POST, 'subject' => $this)));
+//        $this->_object->dispatch();
+        $result = $this->_object->dispatch();
+                
+        if (is_string($result)) {
+            $this->_c->response->body = $result;
+            return $this->_c->response;
         }
+        else if (is_object($result)) {
+            return $result;
+        }
+        else {
+            return $this->_c->response;
+        }
+
+//        // log stack
+//        $this->_stack[] = array(
+//            'controller' => $this->_controller,
+//            'action'     => $this->_action,
+//            'class'      => $this->_class,
+//            'interface'  => $this->_interface,
+//            'method'     => $this->_method,
+//            'dir'        => $this->_dir,
+//        );
+//
+        /** @event dispatcher_end */
+//        if ($this->event->is(self::EVENT_DISPATCHER_POST)) {
+//            $this->event->run(new f_event(array('id' => self::EVENT_DISPATCHER_POST, 'subject' => $this)));
+//        }
 
     }
 

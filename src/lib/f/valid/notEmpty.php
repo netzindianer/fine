@@ -19,7 +19,14 @@ class f_valid_notEmpty extends f_valid_abstract
         $sValue = (string) $mValue;
         $this->_val($sValue);
 
-        if (strlen($sValue) == 0) {
+        if (is_array($mValue)) {
+            $iValueLength = count($mValue);
+        }
+        else {
+            $iValueLength = strlen((string) $mValue);
+        }
+        
+        if ($iValueLength == 0) {
             $this->_error(self::STRING_EMPTY);
             return false;
         }

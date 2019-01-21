@@ -214,6 +214,28 @@ class f_cache
 
         return $this->_backend->get($this->_prefix . $sKey, $this->_time);
     }
+    
+    /**
+     * Kompilacja metod is, get i set.
+     * Zwraca dane z cache, a jesli nie ma w cache to wykonuje pobranie podanym callbackiem
+     * i zapisuje bezpiecznie cache (rename + plik lock na czas generowania). 
+     * 
+     * @param string $sKey klucz
+     * @param int $time czas waznosci cache w sekundach
+     * @param mixed $callback, callback, ktory wykona prawdziwe pobranie ze zrodla danych
+     * @param mixed $aParams parametry przekazane do metody pobierania
+     * @return mixed
+     */
+    public function read($sKey, $time, $callback, $aParams)
+    {
+        $this->_lastKey = $this->_prefix . $sKey;
+
+        if ($this->_backend === null) {
+            throw new f_cache_exception_badMethodCall("Nie ustawiony backend cacheu");
+        }
+
+        return $this->_backend->read($this->_prefix . $sKey, $time, $callback, $aParams);
+    }
 
     /**
      * Usuwa dane dla podanego klucza

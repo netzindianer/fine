@@ -7,6 +7,9 @@ abstract class f_v_helper_formElementAbstract
     {
         $render = "";
         foreach ($aAttr as $k => $v) {
+            if (is_array($v)) {
+                continue;
+            }
             $render .= ' ' . htmlspecialchars($k) . '="' . htmlspecialchars($v) . '"';
         }
         return $render;

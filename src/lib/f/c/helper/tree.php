@@ -6,10 +6,10 @@ class f_c_helper_tree implements f_di_asNew_interface
     public $id     = array();
     public $parent = array();
     
-    protected $_root       = 0;
-    protected $_child      = 'child';
-    protected $_id         = 'id';
-    protected $_parent     = 'parent';
+    protected $_root   = 0;
+    protected $_child  = 'child';
+    protected $_id     = 'id';
+    protected $_parent = 'parent';
 
     /**
      * Static construktor

@@ -1,6 +1,6 @@
 <?php
 
-class f_c_helper_readfile extends f_c implements f_di_asNew_interface
+class f_c_helper_readfile extends f_c
 {
 
     protected $_request;

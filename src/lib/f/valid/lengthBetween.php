@@ -42,7 +42,7 @@ class f_valid_lengthBetween extends f_valid_abstract
     {
         if (is_array($mValue)) {
             $iValueLength = count($mValue);
-            $this->_val($iValueCount);
+            $this->_val($mValue);
         }
         else {
             $mValue = (string) $mValue;

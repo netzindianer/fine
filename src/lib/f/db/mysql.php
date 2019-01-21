@@ -9,7 +9,10 @@ class f_db_mysql
 
     public function connect($sHostname, $sUsername, $sPassword)
     {
-        if (($this->_connect = @mysqli_connect($sHostname, $sUsername, $sPassword))) {
+        $expl           = explode(":", $sHostname);
+        $host           = $expl[0];
+        $port           = (int) (count($expl) > 1 ? $expl[1] : 3306);
+        if (($this->_connect = @mysqli_connect($host, $sUsername, $sPassword, "", $port))) {
             return $this;
         }
         throw new f_db_exception_connection($this->errorMsg(), $this->errorNo());
@@ -25,7 +28,7 @@ class f_db_mysql
 
     public function link($rConnectionLinkIdentifier = null)
     {
-        if (func_num_args ()) {
+        if (func_num_args()) {
             $this->_connect = $rConnectionLinkIdentifier;
             return $this;
         }
@@ -47,7 +50,7 @@ class f_db_mysql
     {
         return $this->_result;
     }
-    
+
     /**
      * Wykonuje zapytanie
      *
@@ -60,10 +63,28 @@ class f_db_mysql
      */
     public function query($sQuery)
     {
-        $this->_query = $sQuery;
-        if (($this->_result = mysqli_query($this->_connect, $sQuery))) {
-            return $this->_result;
+        $this->_query  = $sQuery;
+        
+        for ($i = 0; $i < 10; $i++) {
+            try {
+                if (($this->_result = mysqli_query($this->_connect, $sQuery))) {
+                    return $this->_result;
+                }
+                throw $this->_exceptionQuery();
+            }
+            catch (Exception $e) {
+                // innodb deadlock, try again
+                // http://stackoverflow.com/questions/2596005/working-around-mysql-error-deadlock-found-when-trying-to-get-lock-try-restarti
+                if ($e->getCode() == 1213 || $e->getCode() == 1205) {   
+                    $ms = rand(10, 100);
+                    usleep($ms * 1000);
+                }
+                else {
+                    break;
+                }
+            }
         }
+        
         throw $this->_exceptionQuery();
     }
 
@@ -75,7 +96,7 @@ class f_db_mysql
      */
     public function row($sQuery)
     {
-        $this->_query = $sQuery;
+        $this->_query  = $sQuery;
         if (($this->_result = mysqli_query($this->_connect, $sQuery))) {
             return mysqli_fetch_assoc($this->_result);
         }
@@ -90,7 +111,7 @@ class f_db_mysql
      */
     public function rows($sQuery)
     {
-        $this->_query = $sQuery;
+        $this->_query  = $sQuery;
         if (($this->_result = mysqli_query($this->_connect, $sQuery))) {
             $a = array();
             while ($i = mysqli_fetch_assoc($this->_result)) {
@@ -101,7 +122,6 @@ class f_db_mysql
         throw $this->_exceptionQuery();
     }
 
-
     /**
      * Zwraca jedno wymiarową tablice numeryczną
      * gdzie wartością pola tablicy jest pierwsze pole z wyselekcjonowanych rekordow
@@ -111,7 +131,7 @@ class f_db_mysql
      */
     public function col($sQuery)
     {
-        $this->_query = $sQuery;
+        $this->_query  = $sQuery;
         if (($this->_result = mysqli_query($this->_connect, $sQuery))) {
             $a = array();
             while ($i = mysqli_fetch_row($this->_result)) {
@@ -130,7 +150,7 @@ class f_db_mysql
      */
     public function cols($sQuery)
     {
-        $this->_query = $sQuery;
+        $this->_query  = $sQuery;
         if (($this->_result = mysqli_query($this->_connect, $sQuery))) {
             $a = array();
             while ($i = mysqli_fetch_row($this->_result)) {
@@ -149,7 +169,7 @@ class f_db_mysql
      */
     public function val($sQuery)
     {
-        $this->_query = $sQuery;
+        $this->_query  = $sQuery;
         if (($this->_result = mysqli_query($this->_connect, $sQuery))) {
             if (($a = mysqli_fetch_row($this->_result))) {
                 return $a[0];
@@ -158,7 +178,7 @@ class f_db_mysql
         }
         throw $this->_exceptionQuery();
     }
-    
+
     /**
      * Zwraca wyselekcjonowany rekord jako tablice zwykłą (numeryczną)
      *
@@ -167,7 +187,7 @@ class f_db_mysql
      */
     public function rowNum($sQuery)
     {
-        $this->_query = $sQuery;
+        $this->_query  = $sQuery;
         if (($this->_result = mysqli_query($this->_connect, $sQuery))) {
             return mysqli_fetch_row($this->_result);
         }
@@ -182,7 +202,7 @@ class f_db_mysql
      */
     public function rowsNum($sQuery)
     {
-        $this->_query = $sQuery;
+        $this->_query  = $sQuery;
         if (($this->_result = mysqli_query($this->_connect, $sQuery))) {
             $a = array();
             while ($i = mysqli_fetch_row($this->_result)) {
@@ -192,7 +212,7 @@ class f_db_mysql
         }
         throw $this->_exceptionQuery();
     }
-    
+
     /**
      * Zwraca wyselekcjonowane rekordy jako dwu wymiarową tablice
      * gdzie kluczem jest pierwsze pole a wartością jest tablica asocjacyjna
@@ -202,7 +222,7 @@ class f_db_mysql
      */
     public function keyed($sQuery)
     {
-        $this->_query = $sQuery;
+        $this->_query  = $sQuery;
         if (($this->_result = mysqli_query($this->_connect, $sQuery))) {
             $a = array();
             while ($i = mysqli_fetch_row($this->_result)) {
@@ -332,48 +352,16 @@ class f_db_mysql
             if (false !== $pos = strpos($query, '?')) {
                 $i      = $this->escape($i);
                 $offest = $pos + strlen($i);
-                $query = substr($query, 0, $pos) . $i . substr($query, $pos + 1);
+                $query  = substr($query, 0, $pos) . $i . substr($query, $pos + 1);
             }
             else {
                 throw new f_db_exception_invalidArgument(
-                    "Too not enough \"?\" chars(" . substr_count($sQuery, "?") . ") in query"
-                    . " and too many vars(" . count($asVar) . ") passed in second argument"
+                "Too not enough \"?\" chars(" . substr_count($sQuery, "?") . ") in query"
+                . " and too many vars(" . count($asVar) . ") passed in second argument"
                 );
             }
         }
         return $sQuery;
-    }
-    
-    /* Transakcje */
-    
-    /**
-     * Rozpoczyna transakcję
-     *
-     * @return bool
-     */
-    public function startTransaction()
-    {
-        return (bool) $this->query("START TRANSACTION");
-    }
-        
-    /**
-     * Zatwierdza zmiany dokonane w trakcie transakcji
-     *
-     * @return bool
-     */
-    public function commit()
-    {
-        return (bool) $this->query("COMMIT");
-    }
-        
-    /**
-     * Cofa zmiany dokonane w  trakcie transakcji
-     *
-     * @return bool
-     */
-    public function rollback()
-    {
-        return (bool) $this->query("ROLLBACK");
     }
 
     protected function _exceptionQuery()

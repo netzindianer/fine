@@ -2,180 +2,517 @@
 
 class f_v_helper_head
 {
-    
-    public $template = array(
-        'charset' => array(
-            'mode'      => 'item',
-            'template'  => "\t<meta http-equiv=\"Content-Type\" content=\"text/html; charset={charset}\">\n",
-            'var'       => 'charset',
-        ),
-        'title' => array(
-            'mode'      => 'list',
-            'template'  => "{fragment}",
-            'var'       => 'fragment',
-            'prepend'   => "\t<title>",
-            'separator' => " | ",
-            'append'    => "</title>\n",
-            'reverse'   => false,
-        ),
-        'keywords' => array(
+
+    public $template = [
+        'charset'      => [
+            'mode'     => 'item',
+            'template' => "\t<meta http-equiv=\"Content-Type\" content=\"text/html; charset={charset}\">\n",
+            'var'      => 'charset',
+        ],
+        'title'        => [
+            'mode'     => 'item',
+            'template' => "\t<title>{content}</title>\n",
+            'var'      => 'content',
+        ],
+        'keywords'     => [
             'mode'      => 'list',
             'template'  => "{words}",
             'var'       => 'words',
             'prepend'   => "\t<meta name=\"keywords\" content=\"",
             'separator' => ', ',
             'append'    => "\" />\n",
-        ),
-        'robots' => array(
+        ],
+        'robots'       => [
             'mode'      => 'list',
             'template'  => "{param}",
             'var'       => 'param',
             'prepend'   => "\t<meta name=\"robots\" content=\"",
             'separator' => ', ',
             'append'    => "\" />\n",
-        ),
-        'description' => array(
+        ],
+        'description'  => [
             'mode'      => 'list',
             'template'  => "{description}",
             'var'       => 'description',
             'prepend'   => "\t<meta name=\"description\" content=\"",
             'separator' => '. ',
             'append'    => "\" />\n",
+        ],
+        'favicon'      => [
+            'mode'     => 'item',
+            'template' => "\t<link href=\"{href}\" rel=\"shortcut icon\">\n",
+            'var'      => 'href',
+        ],
+        'canonical'    => [
+            'mode'     => 'item',
+            'template' => "\t<link rel=\"canonical\" href=\"{content}\" />\n",
+            'var'      => 'content',
+        ],
+        'next'         => [
+            'mode'     => 'item',
+            'template' => "\t<link rel=\"next\" href=\"{content}\" />",
+            'var'      => 'content',
+        ],
+        'prev'         => [
+            'mode'     => 'item',
+            'template' => "\t<link rel=\"prev\" href=\"{content}\" />",
+            'var'      => 'content',
+        ],
+        'publisher'    => [
+            'mode'     => 'item',
+            'template' => "\t<link rel=\"publisher\" href=\"{content}\" />",
+            'var'      => 'content'
+        ],
+        'rss'          => [
+            'mode'       => 'list',
+            'template'   => "\t<link href=\"{href}\" title=\"{title}\" type=\"application/rss+xml\" rel=\"alternate\" {attr}/>\n",
+            'var'        => 'href',
+            'val'        => ['attr' => ''],
+            'dontEscape' => ['attr'],
+        ],
+        'atom'         => [
+            'mode'       => 'list',
+            'template'   => "\n<link href=\"{href}\" title=\"{title}\" type=\"application/atom+xml\" rel=\"alternate\" {attr}/>",
+            'var'        => 'href',
+            'val'        => ['attr' => ''],
+            'dontEscape' => ['attr'],
+        ],
+        'css'          => [
+            'mode'       => 'list',
+            'template'   => "\t<link rel=\"stylesheet\" type=\"text/css\" href=\"{href}\" {attr}/>\n",
+            'var'        => 'href',
+            'val'        => ['attr' => ''],
+            'dontEscape' => ['attr'],
+        ],
+        'cssIE7'       => [
+            'mode'       => 'list',
+            'template'   => "\t<!--[if IE 7]><link rel=\"stylesheet\" type=\"text/css\" href=\"{href}\" {attr}/><![endif]-->\n",
+            'var'        => 'href',
+            'val'        => ['attr' => ''],
+            'dontEscape' => ['attr'],
+        ],
+        'js'           => [
+            'mode'       => 'list',
+            'template'   => "\t<script src=\"{src}\" type=\"text/javascript\"{attr}>{content}</script>\n",
+            'var'        => 'src',
+            'val'        => ['attr' => '', 'content' => ''],
+            'dontEscape' => ['attr'],
+        ],
+        'viewport'     => [
+            'mode'     => 'list',
+            'template' => "\t<meta name=\"viewport\" content=\"{content}\"/>\n",
+            'var'      => 'content',
+        ],
+        'jscode'       => [
+            'mode'       => 'list',
+            'template'   => "{content}",
+            'var'        => 'content',
+            'prepend'    => "\t<script type=\"text/javascript\">\n",
+            'separator'  => "\n",
+            'append'     => "\n</script>\n",
+            'dontEscape' => ['content'],
+        ],
+        'jsblock'      => [
+            'mode'       => 'list',
+            'template'   => "\t<script type=\"text/javascript\"{attr}>\n{content}\n\t</script>\n",
+            'var'        => 'content',
+            'val'        => ['attr' => ''],
+            'dontEscape' => ['content', 'attr'],
+        ],
+        'csscode'      => [
+            'mode'       => 'list',
+            'template'   => "{content}",
+            'var'        => 'content',
+            'prepend'    => "\t<style type=\"text/css\">\n",
+            'separator'  => "\n",
+            'append'     => "\n\t</style>\n",
+            'dontEscape' => ['content'],
+        ],
+        'cssblock'     => [
+            'mode'       => 'list',
+            'template'   => "\t<style type=\"text/css\"{attr}>\n{content}\n\t</style>\n",
+            'var'        => 'content',
+            'val'        => ['attr' => ''],
+            'dontEscape' => ['content', 'attr'],
+        ],
+        'meta'         => array(
+            'mode'       => 'item',
+            'template'   => "\t<meta name=\"{name}\" content=\"{content}\" {attr}/>\n",
+            'var'        => 'name',
+            'val'        => array('attr' => ''),
+            'dontEscape' => ['attr'],
         ),
-        'favicon' => array(
-            'mode'      => 'item',
-            'template'  => "\t<link href=\"{href}\" rel=\"shortcut icon\">\n",
-            'var'       => 'href',
+        'metaProperty' => [
+            'mode'       => 'list',
+            'template'   => "\t<meta property=\"{property}\" content=\"{content}\"{attr}>\n",
+            'var'        => 'content',
+            'val'        => ['property' => '', 'content' => '', 'attr' => ''],
+            'dontEscape' => ['attr'],
+        ],
+        'script'       => [
+            'mode'       => 'list',
+            'template'   => "\t<script{attr}>\n{content}\n\t</script>\n",
+            'var'        => 'content',
+            'val'        => ['attr' => '', 'content' => ''],
+            'dontEscape' => ['content', 'attr'],
+        ],
+        'raw'          => array(
+            'mode'       => 'list',
+            'template'   => "\n\t{content}\n",
+            'var'        => 'content',
+            'dontEscape' => ['content'],
         ),
-        'rss' => array(
-            'mode'      => 'list',
-            'template'  => "\t<link href=\"{href}\" title=\"{title}\" type=\"application/rss+xml\" rel=\"alternate\" {attr}/>\n",
-            'var'       => 'href',
-            'val'       => array('attr' => ''),
-        ),
-        'atom' => array(
-            'mode'      => 'list',
-            'template'  => "\n<link href=\"{href}\" title=\"{title}\" type=\"application/atom+xml\" rel=\"alternate\" {attr}/>",
-            'var'       => 'href',
-            'val'       => array('attr' => ''),
-        ),
-        'css' => array(
-            'mode'      => 'list',
-            'template'  => "\t<link rel=\"stylesheet\" type=\"text/css\" href=\"{href}\" {attr}/>\n",
-            'var'       => 'href',
-            'val'       => array('attr' => ''),
-        ),
-        'cssIE7' => array(
-            'mode'      => 'list',
-            'template'  => "\t<!--[if IE 7]><link rel=\"stylesheet\" type=\"text/css\" href=\"{href}\" {attr}/><![endif]-->\n",
-            'var'       => 'href',
-            'val'       => array('attr' => ''),
-        ),
-        'js' => array(
-            'mode'      => 'list',
-            'template'  => "\t<script src=\"{src}\" type=\"text/javascript\"{attr}>{content}</script>\n",
-            'var'       => 'src',
-            'val'       => array('attr' => '', 'content' => ''),
-        ),
-        'viewport' => array(
-            'mode'      => 'list',
-            'template'  => "\t<meta name=\"viewport\" content=\"{content}\"/>\n",
-            'var'       => 'content',
-            'val'       => array('attr' => ''),
-        ),
-        'jscode' => array(
-            'mode'      => 'list',
-            'template'  => "{content}",
-            'var'       => 'content',
-            'prepend'   => "\t<script type=\"text/javascript\">\n",
-            'separator' => "\n",
-            'append'    => "\n</script>\n",
-        ),
-        'jsblock' => array(
-            'mode'      => 'list',
-            'template'  => "\t<script type=\"text/javascript\"{attr}>\n{content}\n\t</script>\n",
-            'var'       => 'content',
-            'val'       => array('attr' => ''),
-        ),
-        'csscode' => array(
-            'mode'      => 'list',
-            'template'  => "{content}",
-            'var'       => 'content',
-            'prepend'   => "\t<style type=\"text/css\">\n",
-            'separator' => "\n",
-            'append'    => "\n\t</style>\n",
-        ),
-        'cssblock' => array(
-            'mode'      => 'list',
-            'template'  => "\t<style type=\"text/css\"{attr}>\n{content}\n\t</style>\n",
-            'var'       => 'content',
-            'val'       => array('attr' => ''),
-        ),
-        'ogTitle' => array(
-            'mode'      => 'item',
-            'template'  => "\t<meta property=\"og:title\" content=\"{content}\">\n",
-            'var'       => 'content',
-        ),
-        'ogType' => array(
-            'mode'      => 'item',
-            'template'  => "\t<meta property=\"og:type\" content=\"{content}\">\n",
-            'var'       => 'content',
-        ),
-        'ogUrl' => array(
-            'mode'      => 'item',
-            'template'  => "\t<meta property=\"og:url\" content=\"{content}\">\n",
-            'var'       => 'content',
-        ),
-        'ogImage' => array(
-            'mode'      => 'item',
-            'template'  => "\t<meta property=\"og:image\" content=\"{content}\">\n",
-            'var'       => 'content',
-        ),
-        'ogDescription' => array(
-            'mode'      => 'item',
-            'template'  => "\t<meta property=\"og:description\" content=\"{content}\">\n",
-            'var'       => 'content',
-        ),
-        'ogSiteName' => array(
-            'mode'      => 'item',
-            'template'  => "\t<meta property=\"og:site_name\" content=\"{content}\">\n",
-            'var'       => 'content',
-        ),
-        'fbAppId' => array(
-            'mode'      => 'item',
-            'template'  => "\t<meta property=\"fb:app_id\" content=\"{content}\">\n",
-            'var'       => 'content',
-        ),
-        'canonical' => array(
-            'mode'      => 'item',
-            'template'  => "\t<link rel=\"canonical\" href=\"{content}\" />\n",
-            'var'       => 'content'
-        ),
-        'next' => array(
-            'mode'      => 'item',
-            'template'  => "\t<link rel=\"next\" href=\"{content}\" />",
-            'var'       => 'content'
-        ),
-        'prev' => array(
-            'mode'      => 'item',
-            'template'  => "\t<link rel=\"prev\" href=\"{content}\" />",
-            'var'       => 'content'
-        ),
-    );
-    protected $_data = array();
-    
-    
-    public static function _()
+        'cssasync'      => [
+            'mode'       => 'list',
+            'template'   => "\t<script>"
+                                ."var cb = function() {"
+                                    ."var l = document.createElement('link'); l.rel = 'stylesheet';"
+                                    ."l.href = '{href}';"
+                                    ."var h = document.getElementsByTagName('head')[0]; h.parentNode.insertBefore(l, h);"
+                                ."};"
+                                ."var raf = requestAnimationFrame || mozRequestAnimationFrame ||"
+                                ."webkitRequestAnimationFrame || msRequestAnimationFrame;"
+                                ."if (raf) raf(cb);"
+                                ."else window.addEventListener('load', cb);"
+                            ."</script>\n",
+            'var'        => 'href',
+            'val'        => ['attr' => ''],
+            'dontEscape' => ['href', 'attr'],
+        ],
+    ];
+    // 
+    protected $_data = [];
+
+    public function head($type, $data = null)
     {
-        return new self;
+        if (!array_key_exists($type, $this->template)) {
+            throw new \InvalidArgumentException("Template: $type dont exist!");
+        }
+
+        if (is_string($data)) {
+            $data = [$this->template[$type]['var'] => $data];
+        }
+
+        if ($this->template[$type]['mode'] == 'item') {
+            $this->_data[$type] = $data;
+        }
+        else {
+            $this->_data[$type][] = $data;
+        }
+
+        return $this;
     }
 
-    public function __call($name, $arguments) 
+    public function render($excludeList = [])
     {
-        $this->head($name, $arguments[0]);
+        $output = '';
+
+        foreach ($this->template as $type => $tpl) {
+            if (in_array($type, $excludeList)) {
+                continue;
+            }
+            $output .= $this->renderType($type);
+        }
+
+        return $output;
     }
 
-    public function __toString()
+    public function renderType($type)
+    {
+        $data = $this->_data[$type];
+        $tpl  = $this->template[$type];
+
+        if (!isset($data)) {
+            return '';
+        }
+
+        if ($tpl['mode'] == 'item') {
+
+            $data += (array) $tpl['val'];
+            $output = $tpl['template'];
+            foreach ($data as $var => $val) {
+                if (!$tpl['dontEscape'] || !in_array($var, $tpl['dontEscape'])) {
+                    $val = htmlspecialchars($val);
+                }
+                $output = str_replace("{{$var}}", $val, $output);
+            }
+            return $output;
+        }
+        else if ($tpl['mode'] == 'list') {
+            $outputArray = [];
+
+            if ($tpl['reverse']) {
+                $data = array_reverse($data);
+            }
+
+            foreach ($data as $i) {
+                $i += (array) $tpl['val'];
+                $output = $tpl['template'];
+                foreach ($i as $var => $val) {
+                    if (!$tpl['dontEscape'] || !in_array($var, $tpl['dontEscape'])) {
+                        $val = htmlspecialchars($val);
+                    }
+                    $output = str_replace("{{$var}}", $val, $output);
+                }
+                $outputArray[] = $output;
+            }
+
+            return
+                    (string) $tpl['prepend']
+                    . implode((string) $tpl['separator'], $outputArray)
+                    . (string) $tpl['append'];
+        }
+    }
+
+    public function remove($type = null)
+    {
+        if ($type) {
+            unset($this->_data[$type]);
+        }
+        else {
+            $this->_data = [];
+        }
+        return $this;
+    }
+
+    public function charset($charset)
+    {
+        return $this->head('charset', ($charset));
+    }
+
+    public function title($title)
+    {
+        return $this->head('title', ($title));
+    }
+
+    public function keywords($keywords)
+    {
+        return $this->head('keywords', ($keywords));
+    }
+
+    public function description($description)
+    {
+        return $this->head('description', ($description));
+    }
+
+    public function robots($robots)
+    {
+        return $this->head('robots', ($robots));
+    }
+
+    public function favicon($favicon)
+    {
+        return $this->head('favicon', ($favicon));
+    }
+
+    public function meta($sName, $sContent)
+    {
+        return $this->head('meta', array('name' => $sName, 'content' => $sContent));
+    }
+
+    public function canonical($content)
+    {
+        return $this->head('canonical', ($content));
+    }
+
+    public function rss($uri, $title = null, $attr = "")
+    {
+        return $this->head('rss', ['href' => ($uri), 'title' => ($title), 'attr' => $attr]);
+    }
+
+    public function atom($uri, $title = null, $attr = "")
+    {
+        return $this->head('atom', ['href' => ($uri), 'title' => ($title), 'attr' => $attr]);
+    }
+
+    public function css($uri, $attr = "")
+    {
+        return $this->head('css', ['href' => ($uri), 'attr' => $attr]);
+    }
+    
+    public function cssasync($uri, $attr = "")
+    {
+        return $this->head('cssasync', ['href' => ($uri), 'attr' => $attr]);
+    }
+    
+    public function cssiasync($sStyle)
+    {
+        return $this->cssasync('/' . f_c_helper_publicFiles2oneFile::PUBLIC_FOLDER . '/' . f_c_helper_publicFiles2oneFile::MAIN_FOLDER
+                        . '/css/' . $sStyle . '-v' . f::$c->config->public['css'][$sStyle]['v'] . '.css');
+    }
+    
+    public function cssIE7($uri, $attr = "")
+    {
+        return $this->head('cssIE7', ['href' => ($uri), 'attr' => $attr]);
+    }
+
+    public function csscode($content)
+    {
+        return $this->head('csscode', $content);
+    }
+
+    public function cssblock($content, $attr = "")
+    {
+        return $this->head('cssblock', ['content' => $content, 'attr' => $attr]);
+    }
+
+    public function viewport($content)
+    {
+        return $this->head('viewport', ['content' => ($content)]);
+    }
+
+    public function js($uri, $content = null, $attr = "")
+    {
+        return $this->head('js', ['attr' => $attr, 'src' => ($uri), 'content' => $content]);
+    }
+
+    public function jscode($content)
+    {
+        return $this->head('jscode', $content);
+    }
+
+    public function jsblock($content, $attr = "")
+    {
+        return $this->head('jsblock', ['content' => $content, 'attr' => $attr]);
+    }
+
+    public function publisher($content)
+    {
+        return $this->head('publisher', $content);
+    }
+
+    public function pageMap($data)
+    {
+        return $this->head('raw', "<!--\n\t<PageMap>\n" . $data . "\n\t</PageMap>-->");
+    }
+
+    public function raw($data)
+    {
+        return $this->head('raw', $data);
+    }
+
+    public function metaProperty($property, $content, $attr = "")
+    {
+        return $this->head('metaProperty', [
+                    'property' => ($property),
+                    'content'  => $content,
+                    'attr'     => $attr,
+        ]);
+    }
+
+    public function ogTitle($content)
+    {
+        return $this->head('metaProperty', [
+                    'property' => 'og:title',
+                    'content'  => ($content),
+        ]);
+    }
+
+    public function ogType($content)
+    {
+        return $this->head('metaProperty', [
+                    'property' => 'og:type',
+                    'content'  => ($content),
+        ]);
+    }
+
+    public function ogUrl($content)
+    {
+        return $this->head('metaProperty', [
+                    'property' => 'og:url',
+                    'content'  => ($content),
+        ]);
+    }
+
+    public function ogImage($content)
+    {
+        return $this->head('metaProperty', [
+                    'property' => 'og:image',
+                    'content'  => ($content),
+        ]);
+    }
+
+    public function ogSiteName($content)
+    {
+        return $this->head('metaProperty', [
+                    'property' => 'og:site_name',
+                    'content'  => ($content),
+        ]);
+    }
+
+    public function ogDescription($content)
+    {
+        return $this->head('metaProperty', [
+                    'property' => 'og:description',
+                    'content'  => ($content),
+        ]);
+    }
+
+    public function ogLocale($content)
+    {
+        return $this->head('metaProperty', [
+                    'property' => 'og:locale',
+                    'content'  => ($content),
+        ]);
+    }
+
+    public function jsi($sJs)
+    {
+        return $this->js('/' . f_c_helper_publicFiles2oneFile::PUBLIC_FOLDER . '/' . f_c_helper_publicFiles2oneFile::MAIN_FOLDER
+                        . '/js/' . $sJs . '-v' . f::$c->config->public['js'][$sJs]['v'] . '.js');
+    }
+
+    public function cssi($sStyle)
+    {
+        return $this->css('/' . f_c_helper_publicFiles2oneFile::PUBLIC_FOLDER . '/' . f_c_helper_publicFiles2oneFile::MAIN_FOLDER
+                        . '/css/' . $sStyle . '-v' . f::$c->config->public['css'][$sStyle]['v'] . '.css');
+    }
+
+    public function next($content)
+    {
+        return $this->head('next', ($content));
+    }
+
+    public function prev($content)
+    {
+        return $this->head('prev', ($content));
+    }
+
+    public function fbAppId($content)
+    {
+        return $this->head('metaProperty', [
+                    'property' => 'fb:app_id',
+                    'content'  => ($content),
+        ]);
+    }
+
+    public function script($content, $attr = "")
+    {
+        $this->head("script", [
+            'attr'    => $attr,
+            'content' => $content,
+        ]);
+    }
+
+    public function ldjson($dataArray, $pretty = true)
+    {
+        $this->head("script", [
+            'attr'    => ' type="application/ld+json"',
+            'content' => json_encode($dataArray, $pretty ? JSON_PRETTY_PRINT : 0),
+        ]);
+    }
+    
+    public function startBuffer()
+    {
+        ob_start();
+    }
+    
+    public function stopBuffer()
+    {
+        $this->raw(ob_get_clean());
+    }
+
+    public function helper()
     {
         return $this->render();
     }
@@ -185,251 +522,9 @@ class f_v_helper_head
         return $this->render();
     }
 
-    public function helper()
+    public function __toString()
     {
         return $this->render();
     }
-    
-    public function render()
-    {
-        $output = '';
-        
-        foreach ($this->template as $type => $template) {
-            $output .= $this->renderType($type);
-        }
-        
-        return $output;
-    }
-    
-    public function renderType($sType)
-    {
-        $data = $this->_data[$sType];
-        $tpl  = $this->template[$sType];
-        
-        if (! isset($data)) {
-            return '';
-        }
-        
-        if ($tpl['mode'] == 'item') {
-            
-            $data    += (array)$tpl['val'];
-            $sOutput = $tpl['template'];
-            foreach ($data as $var => $val) {
-                $sOutput = str_replace("{{$var}}", htmlspecialchars($val), $sOutput);
-            }
-            
-            return $sOutput;
-            
-        }
-        else {
-            
-            $aOutput = array();
-            
-            if ($tpl['reverse']) {
-                $data = array_reverse($data);
-            }
-            
-            foreach ($data as $i) {
-                $i       += (array)$tpl['val'];
-                $sOutput = $tpl['template'];
-                foreach ($i as $var => $val) {
-                    $sOutput = str_replace("{{$var}}", htmlspecialchars($val), $sOutput);
-                }
-                $aOutput[] = $sOutput;
-            }
-            
-            return 
-                (string)$tpl['prepend'] 
-              . implode((string)$tpl['separator'], $aOutput) 
-              . (string)$tpl['append'];
-            
-        }
-        
-    }
 
-    public function head($sType, $asArg = null)
-    {
-        if (is_string($asArg)) {
-            $asArg = array($this->template[$sType]['var'] => $asArg);
-        }
-        
-        if ($this->template[$sType]['mode'] == 'item') {
-            $this->_data[$sType] = $asArg;
-        }
-        else {
-            $this->_data[$sType][] = $asArg;
-        }
-        
-        return $this;
-    }
-    
-    public function remove($sType = null)
-    {
-        // remove all
-        if (func_num_args() == 0) {
-            foreach ($this->template as $type => $template) {
-                unset($this->_data[$type]);
-            }
-            return $this;
-        }
-        
-        // remove one type
-        unset($this->_data[$sType]);
-        return $this;
-    }
-
-    /* html main */
-    
-    public function charset($sCharset)
-    {
-        return $this->head('charset', $sCharset);
-    }
-
-    public function title($sTitle)
-    {
-        return $this->head('title', $sTitle);
-    }
-
-    public function keywords($sKeywords)
-    {
-        return $this->head('keywords', $sKeywords);
-    }
-
-    public function description($sDescription)
-    {
-        return $this->head('description', $sDescription);
-    }
-
-    public function robots($sRobots)
-    {
-        return $this->head('robots', $sRobots);
-    }
-
-    public function favicon($sFavicon)
-    {
-        return $this->head('favicon', $sFavicon);
-    }
-
-    /* feeds */
-    
-    public function rss($sUri, $sTitle = null)
-    {
-        return $this->head('rss', array('href' => $sUri, 'title' => $sTitle));
-    }
-
-    public function atom($sUri, $sTitle = null)
-    {
-        return $this->head('atom', array('href' => $sUri, 'title' =>  $sTitle));
-    }
-
-    /* css */
-    
-    public function css($sUri)
-    {
-        return $this->head('css', $sUri);
-    }
-    
-    public function cssIE7($sUri)
-    {
-        return $this->head('cssIE7', $sUri);
-    }
-    
-    public function csscode($sContent)
-    {
-        return $this->head('csscode', $sContent);
-    }
-
-    public function cssblock($sContent)
-    {
-        return $this->head('cssblock', $sContent);
-    }
-    
-    public function cssi($sStyle)
-    {
-        return $this->css('/public/css/' . $sStyle . '/v' . f::$c->config->public['css'][$sStyle]['v'] . '.css');
-    }
-
-    /* meta */
-    
-    public function viewport($sContent)
-    {
-        return $this->head('viewport', array('content' => $sContent));
-    }
-    
-    /* js */
-    
-    public function js($sUri, $sContent = null)
-    {
-        return $this->head('js', array('src' => $sUri, 'content' => $sContent));
-    }
-
-    public function jscode($sContent)
-    {
-        return $this->head('jscode', $sContent);
-    }
-
-    public function jsblock($sContent)
-    {
-        return $this->head('jsblock', $sContent);
-    }
-    
-    public function jsi($sJs)
-    {
-        return $this->js('/public/js/' . $sJs . '/v' . f::$c->config->public['js'][$sJs]['v'] . '.js');
-    }
-
-    /* Open Graph protocol http://ogp.me/ */ 
-    
-    public function ogTitle($sContent)
-    {
-        return $this->head('ogTitle', $sContent);
-    }
-    
-    public function ogType($sContent)
-    {
-        return $this->head('ogType', $sContent);
-    }
-    
-    public function ogUrl($sContent)
-    {
-        return $this->head('ogUrl', $sContent);
-    }
-    
-    public function ogImage($sContent)
-    {
-        return $this->head('ogImage', $sContent);
-    }
-    
-    public function ogSiteName($sContent)
-    {
-        return $this->head('ogImage', $sContent);
-    }
-    
-    public function ogDescription($sContent)
-    {
-        return $this->head('ogDescription', $sContent);
-    }
-    
-    public function next($sContent)
-    {
-        return $this->head('next', $sContent);
-    }
-    
-    public function prev($sContent)
-    {
-        return $this->head('prev', $sContent);
-    }
-    
-    /* facebook */
-    
-    public function fbAppId($sContent)
-    {
-        return $this->head('fbAppId', $sContent);
-    }
-    
-    public function canonical($sContent)
-    {
-        return $this->head('canonical', $sContent);
-    }
-    
 }

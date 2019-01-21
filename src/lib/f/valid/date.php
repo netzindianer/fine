@@ -24,14 +24,13 @@ class f_valid_date extends f_valid_abstract
     );
     protected $_pattern = array(
         'Y' => '[0-9]{4}',
-        'm' => '[0-9]{2}',
-        'd' => '[0-9]{2}',
-        'H' => '[0-9]{2}',
-        'i' => '[0-9]{2}',
-        's' => '[0-9]{2}',
+        'm' => '[01]{1}[0-9]{1}',
+        'd' => '[0-3]{1}[0-9]{1}',
+        'H' => '[0-2]{1}[0-9]{1}',
+        'i' => '[0-5]{1}[0-9]{1}',
+        's' => '[0-5]{1}[0-9]{1}',
     );
-    
-    
+        
     public static function _(array $config = array())
     {
         return new self($config);
@@ -54,19 +53,19 @@ class f_valid_date extends f_valid_abstract
         $sValue = (string) $mValue;
         $this->_val($sValue);
         
-        // konvert format to pattern
-        
+        // convert format to pattern
+        $aValid = array();
         $pattern   = "";
         $delimiter = "#";
         for ($i = 0, $end = strlen($this->_format); $i < $end; $i++) {
             $char     = $this->_format[$i];
             $pattern .= isset($this->_pattern[$char])
-                          ? "(?P<" . preg_quote($char, $delimiter). ">" . $this->_pattern[$char] . ")"
-                          : preg_quote($char, $delimiter) . '?';
+                ? "(?P<" . preg_quote($char, $delimiter). ">" . $this->_pattern[$char] . ")"
+                : preg_quote($char, $delimiter);
         }
-        $pattern = $delimiter. $pattern . $delimiter;
-        
-        if (!@preg_match($pattern, $sValue)) {
+        $pattern = $delimiter. '^' . $pattern . '$' . $delimiter;
+
+        if (!@preg_match($pattern, $sValue, $match)) {
             $this->_error(self::NOT_MATCH);
             return false;
         }

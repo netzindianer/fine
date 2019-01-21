@@ -93,10 +93,10 @@ class f_sis
         $this->_throwException = $bThrowException;
         return $this;
     }
-    
+
     /**
      * Set/get maximum time for sis
-     * 
+     *
      * @param int $iSeconds
      * @return f_sis|int
      */
@@ -111,7 +111,7 @@ class f_sis
 
     /**
      * Begin sis
-     * 
+     *
      * Sis by id passed in `id` method
      *
      * @throws f_sis_exception_notWritable If pid file is not writable
@@ -125,8 +125,9 @@ class f_sis
                 throw new f_sis_exception_notWritable("File `{$this->_id}` not writable");
             }
             if ($this->_time == 0 || time() <= filemtime($this->_id) + $this->_time) { // after $this->_time we dont check if process is alive
-                $pid = trim(file_get_contents($this->_id));
-                if (posix_kill($pid, 0)) {
+                $pid = @file_get_contents($this->_id);
+                $pid = (int)trim($pid);
+                if ($pid > 0 && posix_kill($pid, 0)) {
                     if ($this->_isProcessAlive($pid)) {
                         if ($this->_throwException) {
                             throw new f_sis_exception_running("Sis `{$this->_id}` already running");
@@ -147,6 +148,24 @@ class f_sis
         return true;
     }
 
+    public function isRunning()
+    {
+        if (!file_exists($this->_id)) {
+            return false;
+        }
+
+        $pid = trim(file_get_contents($this->_id));
+
+        return posix_kill($pid, 0) && $this->_isProcessAlive($pid);
+    }
+
+    public function sendSignal($sig)
+    {
+        $pid = trim(file_get_contents($this->_id));
+
+        return posix_kill($pid, $sig);
+    }
+
     /**
      * Ends sis
      */
@@ -163,6 +182,6 @@ class f_sis
         $state = array();
         exec('ps ' . $iPID, $state);
         return count($state) >= 2;
-    }
-    
+    }   
+
 }

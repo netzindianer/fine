@@ -7,12 +7,12 @@ class f_v_helper_paging
     {
 
         /* setup */
-
         $out      = '';
         $all      = $paging->all();          // liczba wszystkich elementow
         $page     = $paging->page();         // aktualna strona
         $first    = $paging->firstPage();    // pierwsza strona, standardowo 1
         $pages    = $paging->pages();        // wszystkich stron
+        $last     = $first+$pages-1;         // ostatnia strona
         $uri      = $paging->uri();          // adres jako parametry dla helpera uri
         $uriParam = $paging->uriParam();     // parametry adresy okreslajacy strone
         $var      = $paging->uriVar();       // zmienna do podstawienia strony w adresie stringowym
@@ -21,61 +21,50 @@ class f_v_helper_paging
         $onclick  = $paging->param('onclick');
         $style    = $paging->param('style');
         $link     = array();
-
-        if (!($all > 0)) {
+        
+        if (!($all > 0) || !($pages > 1)) {
             return '';
         }
 
-        if (!$width) {
-            $width = 3;
+        if (!$width || $width < 1) {
+            $width = 2;
+        }
+        
+        /*  $link - table of pages np. 1 [ ] 4 5 [6] 7 8 [ ] 934 */
+        
+        // bierzemy kulę o środku $page i r=$width        
+        $a = $page-$width < $first ? $first : $page-$width;
+        $b = $page+$width > $last ? $last : $page+$width;
+        
+        for ($i=$a; $i<=$b; ++$i) {
+            array_push($link, $i);
+        }
+        
+        // jeśli pomiędzy pierwszm a brzegiem kuli są więcej niż 2 elementy 
+        if ($page-$width > $first+2) {
+            array_unshift($link, ' ');
+        } elseif ($page-$width > $first+1) {
+            array_unshift($link, $first+1);
         }
 
-
-        /*  table of pages np. 1 [ ] 3 4 5 [6] 7 8 9 [ ] 1234 */
-
-        if (!($pages > 1)) {
-            return ''; // nie ma wiecej strony niz 1 to nie generujemy stronicowania
+        // pierwszy
+        if ($page-$width > $first) {
+            array_unshift($link, $first);
         }
 
-        /* df */
-
-        if($pages<4) {
-            $link = array($first, $first+1);
-            if($pages==3) {
-                $link[] = $first+2;
-            }
+        // jeśli pomiędzy ostatnim a brzegiem kuli są więcej niż 2 elementy 
+        if ($page+$width < $last-2) {
+            array_push($link, ' ');
+        } elseif ($page+$width < $last-1) {
+            array_push($link, $last-1);
         }
-        else {
-            // calculate
-            $start = $page - (int)($width/2);
-            if ( $start < $first ) {
-                $start = $first;
-            }
-            $end = $start + $width - 1;
-            $last = $first + $pages - 1;
-            if ( $end > $last ) {
-                $end = $last;
-                $start = $end - $width + 1;
-                if ( $start < $first ) {
-                    $start = $first;
-                }
-            }
-            // array
-            if ( $start > $first ) {
-                $link[] = $first;
-                $link[] = ' ';
-            }
-            for ($i=$start; $i<=$end; $i++) {
-                $link[] = $i;
-            }
-            if ( $end < $last ) {
-                $link[] = ' ';
-                $link[] = $last;
-            }
+
+        // ostatni
+        if ($page+$width < $last) {
+            array_push($link, $last);
         }
 
         /* render */
-
         $itemtpl = "";
 
         if (isset($href) || isset($onclick)) {
@@ -102,7 +91,7 @@ class f_v_helper_paging
 
         
         if($style && $style == 'bootstrap'){
-            $out = '<div class="pagination"><ul>';
+            $out = '<ul class="pagination">';
             foreach ($link as $i) {
                 if ($i == ' ') {
                     $out .= '<li class="disabled"><a> ... </a></li> ';
@@ -114,7 +103,7 @@ class f_v_helper_paging
                     $out .= str_replace($var, $i, $itemtpl);
                 }
             }
-            $out .= '</ul></div>';
+            $out .= '</ul>';
         }
         else {        
             $out = '<div class="box-paging"><ul class="paging-ul">';

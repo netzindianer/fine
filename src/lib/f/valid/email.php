@@ -26,7 +26,7 @@ class f_valid_email extends f_valid_abstract
             return false;
         }
 
-        if (!preg_match('/^[a-zA-Z0-9\._-]+@[a-zA-Z0-9\.-]+\.[a-zA-Z]{2,}$/', $sValue)) {
+        if (!preg_match('/^[a-zA-Z0-9\+\._-]+@[a-zA-Z0-9\.-]+\.[a-zA-Z]{2,}$/', $sValue)) {
             $this->_error(self::NOT_EMAIL);
             return false;
         }

@@ -56,7 +56,7 @@
  *  $valid = new f_valid_model();
  *  $valid->model(m_comment::_()->param(array(
  *      'comment_id_user'   => 1234,
- *      'comment_insert' <=' => time() - 60 * 60
+ *      'comment_insert <=' => time() - 60 * 60
  *  )));
  *  $valid->method('fetchCount');
  *  $valid->compare(f_valid_model::COMPARE_LESS_THAN);
@@ -97,7 +97,7 @@ class f_valid_model extends f_valid_abstract
     protected $_compare;
 
     /**
-     * @var int|string Wartosc wyrazenia do porowania z wynikiem metody moelu
+     * @var int|string Wartosc wyrazenia do porowania z wynikiem metody modelu
      */
     protected $_valToCompare;
 
@@ -105,7 +105,7 @@ class f_valid_model extends f_valid_abstract
      * @var string Method
      */
     protected $_method;
-
+    
     /* main properties */
 
     /**
@@ -176,7 +176,7 @@ class f_valid_model extends f_valid_abstract
      * Metoda bedzie odpalona przy wywolaniu funkcji `isValid($mValue)`
      *
      * @param type $sParam
-     * @return \f_valid_model
+     * @return f_valid_model
      */
     public function method($sMethod = null)
     {
@@ -186,7 +186,7 @@ class f_valid_model extends f_valid_abstract
         $this->_method = $sMethod;
         return $this;
     }
-
+    
     /* validation logic */
 
     /**

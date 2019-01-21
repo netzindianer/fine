@@ -7,14 +7,32 @@ class f_timer
     protected $_start;
     protected $_time  = 0.0;
     protected $_round = 4;
+    protected $_hits = 0;
 
     public static function microtime()
     {
         $aTime = explode(" ", microtime());
         return ((float) $aTime[0] + (float) $aTime[1]);
     }
-    
-    public function round($iRound = null) 
+
+    public static function _(array $config = array())
+    {
+        return new self($config);
+    }
+
+    public function __construct(array $config = array())
+    {
+        foreach ($config as $k => $v) {
+            $this->{$k}($v);
+        }
+    }
+
+    public function __toString()
+    {
+        return (string)$this->get();
+    }
+
+    public function round($iRound = null)
     {
         if (func_num_args() == 0) {
             return $this->_round;
@@ -32,6 +50,7 @@ class f_timer
     public function start()
     {
         $this->_on = true;
+        $this->_hits++;
         $this->_start = self::microtime();
         return $this;
     }
@@ -54,6 +73,11 @@ class f_timer
         else {
             return round($this->_time, $this->_round);
         }
+    }
+
+    public function hits()
+    {
+        return $this->_hits;
     }
 
 }

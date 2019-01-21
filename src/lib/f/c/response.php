@@ -217,6 +217,7 @@ class f_c_response extends f_c
     public function off()
     {
         $this->_sendOnce = true;
+        return $this;
     }
     
     public function send()

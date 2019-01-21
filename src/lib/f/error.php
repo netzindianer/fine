@@ -237,8 +237,8 @@ class f_error
         $oView->line      = $this->line;
         $oView->trace     = $this->trace;
         $oView->error     = $this;
-        ob_end_clean();
-
+//        ob_end_clean();
+        
         if($this->_renderFormat == self::RENDER_FORMAT_NEG) {
             $this->_toNegJson($oView->renderPath('./lib/f/error/exception.view'));
         } else {
@@ -285,12 +285,14 @@ class f_error
 
     protected function _formatAsString($type, $code, $msg, $file, $line, $trace)
     {
-        $return = "\n#$type $code $msg $file:$line";
+        $url = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}";
+        $return = "\n#" . $url;
+        $return .= "\n#$type $code $msg $file:$line";
 
         foreach ($trace as $k => $v) {
 
             $return .= "\n#$k " . $v['class'] . $v['type'] . $v['function']
-                     . "(" . f_debug::dumpFunctionArgs($v['args']) .")"
+                     . "()"
                      . " " .$v['file'] . ":" . $v['line'];
         }
         $return .= "\n#".(++$k)." {main}\n";

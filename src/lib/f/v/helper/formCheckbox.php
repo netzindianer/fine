@@ -91,7 +91,7 @@ class f_v_helper_formCheckbox extends f_v_helper_formElementAbstract
                 }
                 $input += $aAttr;
 
-                if (! is_array($option)) {
+                if (!is_array($option)) {
                     $text = $option;
                 }
                 else {

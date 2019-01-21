@@ -8,7 +8,6 @@ class f_di_listing extends f_di implements IteratorAggregate
      */
     protected $_listing = array();
 
-
     /**
      * 
      * @return ArrayIterator
@@ -23,6 +22,5 @@ class f_di_listing extends f_di implements IteratorAggregate
         
         return new ArrayIterator($services);
     }    
-    
 
 }

@@ -6,7 +6,7 @@ class f_autoload_includePath
     protected $_path      = array();
     protected $_suffix    = '.php';
     protected $_separator = '_';
-    
+
 
     /**
      * Static oknstructor
@@ -101,7 +101,7 @@ class f_autoload_includePath
 
     public function load($sClassName)
     {
-        include str_replace($this->_separator, DIRECTORY_SEPARATOR, $sClassName . $this->_suffix);
+        @include str_replace($this->_separator, DIRECTORY_SEPARATOR, $sClassName . $this->_suffix);
     }
 
 }

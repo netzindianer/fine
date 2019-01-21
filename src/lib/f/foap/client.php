@@ -94,7 +94,7 @@ class f_foap_client
         $r = fsockopen($uri['host'], $uri['scheme'] == 'https' ? 443 : 80);
 
         fwrite($r, 
-            "POST {$uri['path']} HTTP/1.1\r\n"
+            "POST {$uri['path']}" . ($uri['query'] ? '?' . $uri['query'] : '') . " HTTP/1.1\r\n"
             . "Host: {$uri['host']}\r\n"
             . "Content-Type: application/x-www-form-urlencoded\r\n"
             . "Content-Length: " . mb_strlen($request) . "\r\n"

@@ -117,29 +117,34 @@ class f_paging
 
     public function paging()
     {
-        if ($this->_all > 0) {
-
-            if ($this->_page === null) {
-                $this->_page = (int) f::$c->request->get($this->_uriParam) - $this->_firstPage;
-            }
-
-            $this->_pages  = (int) ceil($this->_all / $this->_limit);
-
-            $this->_page   = ($this->_page > 0 && $this->_page < $this->_pages)
-                           ? $this->_page
-                           : 0;
-
-            $this->_offset = $this->_limit * $this->_page;
-
-            $this->_prev   = ($this->_page > $this->_firstPage) 
-                           ? $this->_page - 1 + $this->_firstPage
-                           : null;
-            
-            $this->_next   = ($this->_page < $this->_pages - 1)
-                           ? $this->_page + 1 + $this->_firstPage
-                           : null;
+        if ($this->_all === 0) {
+            $this->_page = 0;
+            $this->_pages = 0;
+            $this->_offset = 0;
+            $this->_prev = null;
+            $this->_next = null;
+            return $this; 
         }
 
+        if ($this->_page === null) {
+            $this->_page = (int) f::$c->request->get($this->_uriParam) - $this->_firstPage;
+        }
+
+        $this->_pages  = (int) ceil($this->_all / $this->_limit);
+
+        $this->_page   = ($this->_page > 0 && $this->_page < $this->_pages)
+                       ? $this->_page
+                       : 0;
+
+        $this->_offset = $this->_limit * $this->_page;
+
+        $this->_prev   = ($this->_page > $this->_firstPage - 1) 
+                       ? $this->_page - 1 + $this->_firstPage
+                       : null;
+
+        $this->_next   = ($this->_page < $this->_pages - 1)
+                       ? $this->_page + 1 + $this->_firstPage
+                       : null;
         return $this;
     }
 

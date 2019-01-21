@@ -11,6 +11,7 @@ class f_m implements IteratorAggregate, Countable
       const PARAM_OFFSET   = 'offset';
       const PARAM_LIMIT    = 'limit';
       const PARAM_PAGING   = 'paging';
+      const PARAM_DISTINCT = 'distinct';
  
       /**
        * Wynik zapytania (rokordy, rekord, krotki danych, wartosc pola lub falsz)
@@ -1211,6 +1212,7 @@ class f_m implements IteratorAggregate, Countable
       {
  
           $select          = null;
+          $distinct        = null;
           $from            = null;
           $where           = null;
           $groupby         = null;
@@ -1272,6 +1274,10 @@ class f_m implements IteratorAggregate, Countable
                   case self::PARAM_PAGING:
                       $offset = ' OFFSET ' . $paramValue->offset();
                       $limit  = ' LIMIT ' . $paramValue->limit();
+                      break;
+ 
+                  case self::PARAM_DISTINCT:
+                      $distinct = ' DISTINCT';
                       break;
  
                   case 'join':
@@ -1345,7 +1351,7 @@ class f_m implements IteratorAggregate, Countable
                   $select[] =  "$v" . (is_int($k) ? '' : ' as ' . $k);
               }
  
-              $select = 'SELECT ' . implode(', ', $select);
+              $select = 'SELECT' . $distinct . ' ' . implode(', ', $select);
           }
  
           // from

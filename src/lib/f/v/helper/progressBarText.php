@@ -1,8 +1,8 @@
 <?php
 
 /**
- * Text plain progress bar  
- * 
+ * Text plain progress bar
+ *
  * example:
  *      $progress = new f_v_helper_progressBarText();
  *      $progress->end(300);
@@ -11,7 +11,7 @@
  *          $progress->up();
  *          usleep(10000);
  *      }
- * 
+ *
  * output:
  * |           25%|           50%|           75%|          100%|
  * |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||

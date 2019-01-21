@@ -134,7 +134,6 @@ class f_form_element
                 $this->_param[$asKey] = $sValue;
                 return $this;
         }
-
     }
     
     public function removeParam($key)

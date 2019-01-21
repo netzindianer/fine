@@ -232,16 +232,21 @@ class f_c_helper_datafile extends f_c
      * @return boolean/ array
      */
     public function getImgConfig($sTable, $sSize)
-    {
+    {        
         if ($this->config->data[$sTable] && $sSize) {
             foreach ($this->config->data[$sTable] as $config) {
-                foreach ($config as $size => $value) {
-                    if (is_array($value) && $size == $sSize) {
-                        return $value;
+                if (is_array($config)) {                
+                    foreach ($config as $size => $value) {
+                        if (is_array($value) && ((String)$size) === ((String)$sSize)) {
+                            return $value;
+                        }
+                        elseif (((String)$value) === ((String)$sSize)) {
+                            return $this->_resolveImgSize($value);
+                        }
                     }
-                    elseif ($value == $sSize) {
-                        return $this->_resolveImgSize($value);
-                    }
+                }
+                elseif (((String)$config) === ((String)$sSize)) {
+                    return $this->_resolveImgSize($config);
                 }
             }
         }

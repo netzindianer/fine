@@ -13,23 +13,19 @@ class f_c_render extends f_c
     public $content;
 
     /**
-     * view was renderd?
-     * @var boolean
-     */
-    protected $_renderOnce = false;
-
-    /**
      * View levels
      *
      * Order matters
      *
      * @var array
      */
-    protected $_level = array(
-        'view'   => array('dir' => 'app/v/script', 'file' => null),
-        'layout' => array('dir' => 'app/v/layout', 'file' => null),
-        'head'   => array('dir' => 'app/v/head',   'file' => null),
-    );
+    protected $_queue = [
+        'view' => ['tpl' => null, 'data' => null],
+        'layout' => ['tpl' => null, 'data' => null],
+        'head' => ['tpl' => null, 'data' => null],
+    ]; 
+    
+    protected $_loop = false;
 
     /**
      * Statyczny konstruktor
@@ -55,21 +51,15 @@ class f_c_render extends f_c
         }
     }
 
-    public function __call($sName, $aArg)
+    public function __call($name, $args)
     {
-
-        if (substr($sName, -3) == 'Dir') {
-            $method = 'levelDir';
-            $level  = substr($sName, 0, -3);
+        if (!isset($args[0])) {
+            return $this->_queue[$name];
         }
-        else {
-            $method = 'levelFile';
-            $level  = $sName;
-        }
-
-        return count($aArg)
-                ? $this->{$method}($level, $aArg[0])
-                : $this->{$method}($level);
+        
+        $this->_queue[$name] = ['tpl' => $args[0], 'data' => $args[1]];
+        
+        return $this;
     }
 
     /**
@@ -77,160 +67,100 @@ class f_c_render extends f_c
      *
      * @param string $sViewScript
      */
-    public function helper($sViewScript = null)
+    public function helper($tpl = null, $data = null)
     {
-        $this->render($sViewScript);
+        return $this->render($tpl, $data);
     }
 
     public function content()
     {
         return $this->content;
     }
-    
-    public function levelFile($sLevelName, $sFile = null)
-    {
-        // getter
-        if (func_num_args() == 1) {
-            $this->_level[$sLevelName]['file'];
-        }
 
-        // setter
-        if (!isset($this->_level[$sLevelName])) {
-            $this->_level[$sLevelName]  = array('dir' => '.', 'file' => null);
-        }
-        $this->_level[$sLevelName]['file'] = $sFile;
-        return $this;
-    }
-
-    public function levelDir($sLevelName, $sDir = null)
+    public function render($tpl = null, $data = null)
     {
-        // getter
-        if (func_num_args() == 1) {
-            $this->_level[$sLevelName]['dir'];
-        }
-
-        // setter
-        if (!isset($this->_level[$sLevelName])) {
-            $this->_level[$sLevelName]  = array('dir' => '.', 'file' => null);
-        }
-        $this->_level[$sLevelName]['dir'] = $sDir;
-        return $this;
-    }
-
-    public function view($sViewFile = null)
-    {
-        if (func_num_args() == 0) {
-            return $this->levelFile('view');
-        }
-        $this->levelFile('view', $sViewFile);
-        return $this;
-    }
-
-    public function viewDir($sViewDir = null)
-    {
-        if (func_num_args() == 0) {
-            return $this->levelDir('view');
-        }
-        $this->levelDir('view', $sViewDir);
-        return $this;
-    }
-
-    public function layout($sLayoutFile = null)
-    {
-        if (func_num_args() == 0) {
-            return $this->levelFile('layout');
-        }
-        $this->levelFile('layout', $sLayoutFile);
-        return $this;
-    }
-
-    public function layoutDir($sLayoutDir = null)
-    {
-        if (func_num_args() == 0) {
-            return $this->levelDir('layout');
-        }
-        $this->levelDir('layout', $sLayoutDir);
-        return $this;
-    }
-
-    public function head($sHeadFile = null)
-    {
-        if (func_num_args() == 0) {
-            return $this->levelFile('head');
-        }
-        $this->levelFile('head', $sHeadFile);
-        return $this;
-    }
-
-    public function headDir($sHeadDir = null)
-    {
-        if (func_num_args() == 0) {
-            return $this->levelDir('head');
-        }
-        $this->levelDir('head', $sHeadDir);
-        return $this;
-    }
-
-    public function renderOnce($sViewScript = null)
-    {
-        if ($this->_renderOnce === true) {
-            return;
-        }
-        $this->render($sViewScript);
-    }
-    
-    public function off()
-    {
-        $this->_renderOnce = true;
-    }
-
-    public function render($sViewScript = null)
-    {
-        /** @event render_pre */
-        if ($this->event->is(self::EVENT_RENDER_PRE)) {
-            $this->event->run($event = new f_event(array('id' => self::EVENT_RENDER_PRE, 'subject' => $this)));
-            if ($event->cancel()) {
-                return;
-            }
+//        /** @event render_pre */
+//        if ($this->event->is(self::EVENT_RENDER_PRE)) {
+//            $this->event->run($event = new f_event(array('id' => self::EVENT_RENDER_PRE, 'subject' => $this)));
+//            if ($event->cancel()) {
+//                return;
+//            }
+//        }
+        
+        if ($tpl) {
+            $this->unshift($tpl, $data);
         }
         
-        // setting flag that view was rendered
-        $this->_renderOnce = true;
-        
-        // handle passed argument
-        if ($sViewScript !== null) {
-            $this->_level['view']['file'] = $sViewScript;
-        }
-        
-        // auto resolve view script if not set
-        if ($this->_level['view']['file'] === null) {
-            $this->_level['view']['file'] = str_replace('_', DIRECTORY_SEPARATOR, $this->dispatcher->controller())
-                                          . DIRECTORY_SEPARATOR
-                                          . str_replace('_', DIRECTORY_SEPARATOR, $this->dispatcher->action());
-        }
+        if ($this->_loop) {
+            return $this->_render($this->shift());
 
+        }
+        
+        $this->_loop = true;
+        
         // render all levels
-        while ($level = current($this->_level)) {
-
-            $dir   = $level['dir'];
-            $file  = $level['file'];
-
-            if (strlen($file) > 0) {
-                $this->content = $this->v->renderPath("$dir/$file");
+        while ($level = $this->shift()) {
+            $content = $this->_render($level);
+            if ($content !== null) {
+                $this->content = $content;
             }
-
-            next($this->_level);
         }
-        reset($this->_level);
+        
+        $this->_loop = false;
+        
+        return $this->content;
 
         // attaches rendered content to response body
-        $this->response->body = $this->content;
+//        $this->response->body = $this->content;
         
-        /** @event render_post */
-        if ($this->event->is(self::EVENT_RENDER_POST)) {
-            $this->event->run(new f_event(array('id' => self::EVENT_RENDER_POST, 'subject' => $this)));
-        }
+//        /** @event render_post */
+//        if ($this->event->is(self::EVENT_RENDER_POST)) {
+//            $this->event->run(new f_event(array('id' => self::EVENT_RENDER_POST, 'subject' => $this)));
+//        }
 
+    }
+    
+    protected function _render($level)
+    {
+        if (is_object($level['tpl'])) {
+            return $level['tpl']->render($level['data']);
+        }
+        else if (is_string($level['tpl'])){
+            return $this->v->renderSandbox($level['tpl'], $level['data']);
+        }
+        else {
+            return null;
+        }
+    }
+
+    public function queue($queue = null)
+    {
+        if (func_num_args() == 0) {
+            return $this->_queue;;
+        }
+        
+        $this->_queue = $queue;
+        
+        return $this;
+    }
+    
+    public function push($tpl, $data = null)
+    {
+        $this->_queue[] = ['tpl' => $tpl, 'data' => $data];
+        
+        return $this;
+    }
+    
+    public function unshift($tpl, $data = null)
+    {
+        array_unshift($this->_queue, ['tpl' => $tpl, 'data' => $data]);
+        
+        return $this;
+    }
+    
+    public function shift()
+    {
+        return array_shift($this->_queue);
     }
 
 }

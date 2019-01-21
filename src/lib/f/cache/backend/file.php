@@ -3,7 +3,7 @@
 class f_cache_backend_file implements f_cache_backend_interface
 {
 
-    protected $_dir  = 'cache/';
+    protected $_dir  = 'cache/default/';
 
     /**
      * Statyczny konstruktor

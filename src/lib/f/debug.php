@@ -323,8 +323,10 @@ class f_debug
         $this->log(null, '$_GET, $_POST, $_SERVER, ...', self::LOG_TYPE_NO_DATA,
                    self::LOG_STYLE_SYSTEM, self::LOG_TREE_BRANCH);
         foreach ($this->_phpPV as $k => $v) {
-            $this->log(self::varDumpPretty($GLOBALS[$k]), '$' . $k, self::LOG_TYPE_CODE_PHP);
-            $this->_phpPV[$k] = md5(self::varDumpPretty($GLOBALS[$k]));
+            if(isset($GLOBALS[$k])) {
+                $this->log(self::varDumpPretty($GLOBALS[$k]), '$' . $k, self::LOG_TYPE_CODE_PHP);
+                $this->_phpPV[$k] = md5(self::varDumpPretty($GLOBALS[$k]));
+            }
         }
         $this->log(null, null, f_debug::LOG_TYPE_NO_DATA, null, f_debug::LOG_TREE_CLOSE);
 

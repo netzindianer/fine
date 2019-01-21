@@ -41,6 +41,13 @@ class f_c_helper_publicFiles2oneFile extends f_c
     protected $_filePattern;
 
     /**
+     * plik niezminimalizowany
+     * 
+     * @var boolean
+     */
+    protected $_fileRaw;
+
+    /**
      * wersja pliku
      * 
      * @var string
@@ -90,7 +97,8 @@ class f_c_helper_publicFiles2oneFile extends f_c
      *      - 'type' = 'dir|file' (`dir` - scalanie plikow z folderu, `file` - scalanie plikow)
      *      - 'dir' = {string} (sciezka do scalanego folderu; tylko dla 'type'='dir')
      *      - 'ignore' = {string|array} (pojedyncza lub lista sciezek do plikow ignorowanych podczas scalania np. `common*.css`; tylko dla 'type'='dir')
-     *      - 'file' = {string|array} (pojedyncza lub lista sciezek plikow do scalenia; tylko dla 'type'='file')
+     *      - 'file' = {string|array} (pojedyncza lub lista sciezek plikow do scalenia; tylko dla 'type'='file'),
+     *      - 'raw' = 'true|false' (czy nie minimalizowac pliku; default = 'false')
      * - jesli pole `input` nie jest zdefiniowane, to standardowo pakowane sa wszystkie pliki z folderu `/public/css/{folder}`
      * 
      * ## Spakowany plik
@@ -148,6 +156,7 @@ class f_c_helper_publicFiles2oneFile extends f_c
      *      - 'dir' = {string} (sciezka do scalanego folderu; tylko dla 'type'='dir')
      *      - 'ignore' = {string|array} (pojedyncza lub lista sciezek do plikow ignorowanych podczas scalania np. `common*.js`; tylko dla 'type'='dir')
      *      - 'file' = {string|array} (pojedyncza lub lista sciezek plikow do scalenia; tylko dla 'type'='file')
+     *      - 'raw' = 'true|false' (czy nie minimalizowac pliku; default = 'false')
      * - jesli pole `input` nie jest zdefiniowane, to standardowo pakowane sa wszystkie pliki z folderu `/public/js/{folder}`
      * 
      * ## Spakowany plik
@@ -232,6 +241,15 @@ class f_c_helper_publicFiles2oneFile extends f_c
         $this->_filePattern = $sPattern;
         return $this;
     }
+    
+    public function fileRaw($bRaw = null)
+    {
+        if ($bRaw === null) {
+            return $this->_fileRaw;
+        }
+        $this->_fileRaw = $bRaw;
+        return $this;
+    }
 
     /**
      * Ustala/ pobiera rozszerzenie pliku
@@ -263,6 +281,12 @@ class f_c_helper_publicFiles2oneFile extends f_c
         return $this;
     }
 
+    protected function _minify($sFile)
+    {
+        $minify = new minify_service();
+        return $minify->run($sFile, $this->_fileType);
+    }
+
     protected function _implodeFiles()
     {
         $config = $this->config->public[$this->_fileType][$this->_fileFolder];
@@ -281,6 +305,10 @@ class f_c_helper_publicFiles2oneFile extends f_c
         if ($config['v'] != $this->_fileVersion) {
             $this->redirect->uri(array(self::PUBLIC_FOLDER, self::MAIN_FOLDER, $this->_fileType, 
                 $this->_fileFolder . '-v' . $config['v'] . '.' . $this->_fileType));
+        }
+        
+        if ($config['raw']) {
+            $this->_fileRaw = true;
         }
  
         // default input
@@ -309,7 +337,8 @@ class f_c_helper_publicFiles2oneFile extends f_c
             }
             
             $method = '_read' . ucfirst($type);
-            $output .= $this->{$method}($param, $ignore);
+            $sFile  = $this->{$method}($param, $ignore);
+            $output .= $input['raw'] || $this->_fileRaw ? $sFile : $this->_minify($sFile);
         }
 
         // replace_regexp
@@ -349,22 +378,12 @@ class f_c_helper_publicFiles2oneFile extends f_c
             return $output;
         }
 
-        // add comment
-        if ($this->_isEnvDev) {
-            $output .= "\n/* {$file} */\n";
-        }
-
         $output .= file_get_contents($file) . "\n";
         
         if ($this->_fileType == 'js') {
             $output .= ';';
         }
 
-        // end adding comment
-        if ($this->_isEnvDev) {
-            $output .= "\n";
-        }
-        
         return $output;
     }
     

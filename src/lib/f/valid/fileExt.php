@@ -59,7 +59,17 @@ class f_valid_fileExt extends f_valid_abstract
 
     public function isValid($mValue)
     {
-        // $mValue from $_FILES ?
+        $bIsFile = false;
+        if (is_array($_FILES)) {
+            foreach ($_FILES as $file) {
+                $bIsFile = is_uploaded_file($file['tmp_name']);
+            }
+        }
+        
+        if (!$bIsFile) {
+            return true;
+        }
+        
         if (!is_string($mValue) && is_array($mValue) && isset($mValue['name'])) {
             $mValue = $mValue['name'];
         }

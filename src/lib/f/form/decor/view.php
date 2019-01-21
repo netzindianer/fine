@@ -44,7 +44,6 @@ class f_form_decor_view extends f_form_decor_default
 
     public function render()
     {
-        
         f::$c->v->{$this->_variable} = $this->object;
 
         $this->_decoration = $this->_path !== null
