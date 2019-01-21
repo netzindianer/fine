@@ -9,7 +9,7 @@ class f_db_mysql
 
     public function connect($sHostname, $sUsername, $sPassword)
     {
-        if (($this->_connect = @mysql_connect($sHostname, $sUsername, $sPassword, true))) {
+        if (($this->_connect = @mysqli_connect($sHostname, $sUsername, $sPassword))) {
             return $this;
         }
         throw new f_db_exception_connection($this->errorMsg(), $this->errorNo());
@@ -17,7 +17,7 @@ class f_db_mysql
 
     public function selectDb($sDatabaseName)
     {
-        if (mysql_select_db($sDatabaseName, $this->_connect)) {
+        if (mysqli_select_db($this->_connect, $sDatabaseName)) {
             return $this;
         }
         throw new f_db_exception_connection($this->errorMsg(), $this->errorNo());
@@ -40,7 +40,7 @@ class f_db_mysql
      */
     public function escape($sString)
     {
-        return mysql_real_escape_string($sString, $this->_connect);
+        return mysqli_real_escape_string($this->_connect, $sString);
     }
 
     public function result()
@@ -61,7 +61,7 @@ class f_db_mysql
     public function query($sQuery)
     {
         $this->_query = $sQuery;
-        if (($this->_result = mysql_query($sQuery, $this->_connect))) {
+        if (($this->_result = mysqli_query($this->_connect, $sQuery))) {
             return $this->_result;
         }
         throw $this->_exceptionQuery();
@@ -76,8 +76,8 @@ class f_db_mysql
     public function row($sQuery)
     {
         $this->_query = $sQuery;
-        if (($this->_result = mysql_query($sQuery, $this->_connect))) {
-            return mysql_fetch_assoc($this->_result);
+        if (($this->_result = mysqli_query($this->_connect, $sQuery))) {
+            return mysqli_fetch_assoc($this->_result);
         }
         throw $this->_exceptionQuery();
     }
@@ -91,9 +91,9 @@ class f_db_mysql
     public function rows($sQuery)
     {
         $this->_query = $sQuery;
-        if (($this->_result = mysql_query($sQuery, $this->_connect))) {
+        if (($this->_result = mysqli_query($this->_connect, $sQuery))) {
             $a = array();
-            while ($i = mysql_fetch_assoc($this->_result)) {
+            while ($i = mysqli_fetch_assoc($this->_result)) {
                 $a[] = $i;
             }
             return $a;
@@ -112,9 +112,9 @@ class f_db_mysql
     public function col($sQuery)
     {
         $this->_query = $sQuery;
-        if (($this->_result = mysql_query($sQuery, $this->_connect))) {
+        if (($this->_result = mysqli_query($this->_connect, $sQuery))) {
             $a = array();
-            while ($i = mysql_fetch_row($this->_result)) {
+            while ($i = mysqli_fetch_row($this->_result)) {
                 $a[] = $i[0];
             }
             return $a;
@@ -131,9 +131,9 @@ class f_db_mysql
     public function cols($sQuery)
     {
         $this->_query = $sQuery;
-        if (($this->_result = mysql_query($sQuery, $this->_connect))) {
+        if (($this->_result = mysqli_query($this->_connect, $sQuery))) {
             $a = array();
-            while ($i = mysql_fetch_row($this->_result)) {
+            while ($i = mysqli_fetch_row($this->_result)) {
                 $a[$i[0]] = $i[1];
             }
             return $a;
@@ -150,8 +150,8 @@ class f_db_mysql
     public function val($sQuery)
     {
         $this->_query = $sQuery;
-        if (($this->_result = mysql_query($sQuery, $this->_connect))) {
-            if (($a = mysql_fetch_row($this->_result))) {
+        if (($this->_result = mysqli_query($this->_connect, $sQuery))) {
+            if (($a = mysqli_fetch_row($this->_result))) {
                 return $a[0];
             }
             return null;
@@ -168,8 +168,8 @@ class f_db_mysql
     public function rowNum($sQuery)
     {
         $this->_query = $sQuery;
-        if (($this->_result = mysql_query($sQuery, $this->_connect))) {
-            return mysql_fetch_row($this->_result);
+        if (($this->_result = mysqli_query($this->_connect, $sQuery))) {
+            return mysqli_fetch_row($this->_result);
         }
         throw $this->_exceptionQuery();
     }
@@ -183,9 +183,9 @@ class f_db_mysql
     public function rowsNum($sQuery)
     {
         $this->_query = $sQuery;
-        if (($this->_result = mysql_query($sQuery, $this->_connect))) {
+        if (($this->_result = mysqli_query($this->_connect, $sQuery))) {
             $a = array();
-            while ($i = mysql_fetch_row($this->_result)) {
+            while ($i = mysqli_fetch_row($this->_result)) {
                 $a[] = $i;
             }
             return $a;
@@ -203,10 +203,10 @@ class f_db_mysql
     public function keyed($sQuery)
     {
         $this->_query = $sQuery;
-        if (($this->_result = mysql_query($sQuery, $this->_connect))) {
+        if (($this->_result = mysqli_query($this->_connect, $sQuery))) {
             $a = array();
-            while ($i = mysql_fetch_assoc($this->_result)) {
-                $a[reset($i)] = $i;
+            while ($i = mysqli_fetch_row($this->_result)) {
+                $a[$i[0]] = $i;
             }
             return $a;
         }
@@ -235,12 +235,12 @@ class f_db_mysql
      */
     public function fetch()
     {
-        return mysql_fetch_assoc($this->_result);
+        return mysqli_fetch_assoc($this->_result);
     }
 
     public function fetchUsingResult($rQueryResult)
     {
-        return mysql_fetch_assoc($rQueryResult);
+        return mysqli_fetch_assoc($rQueryResult);
     }
 
     /**
@@ -250,12 +250,12 @@ class f_db_mysql
      */
     public function fetchNum()
     {
-        return mysql_fetch_row($this->_result);
+        return mysqli_fetch_row($this->_result);
     }
 
     public function fetchNumUsingResult($rQueryResult)
     {
-        return mysql_fetch_row($rQueryResult);
+        return mysqli_fetch_row($rQueryResult);
     }
 
     /**
@@ -265,7 +265,7 @@ class f_db_mysql
      */
     public function countSelected()
     {
-        return mysql_num_rows($this->_result);
+        return mysqli_num_rows($this->_result);
     }
 
     /**
@@ -275,7 +275,7 @@ class f_db_mysql
      */
     public function countSelectedUsingResult($rQueryResult)
     {
-        return mysql_num_rows($rQueryResult);
+        return mysqli_num_rows($rQueryResult);
     }
 
     /**
@@ -285,7 +285,7 @@ class f_db_mysql
      */
     public function countAffected()
     {
-        return mysql_affected_rows($this->_connect);
+        return mysqli_affected_rows($this->_connect);
     }
 
     /**
@@ -296,7 +296,7 @@ class f_db_mysql
     public function close()
     {
         if ($this->_connect) {
-            mysql_close($this->_connect);
+            mysqli_close($this->_connect);
             $this->_connect = null;
             return true;
         }
@@ -305,12 +305,12 @@ class f_db_mysql
 
     public function errorMsg()
     {
-        return @mysql_error($this->_connect);
+        return @mysqli_error($this->_connect);
     }
 
     public function errorNo()
     {
-        return @mysql_errno($this->_connect);
+        return @mysqli_errno($this->_connect);
     }
 
     /**
@@ -380,7 +380,7 @@ class f_db_mysql
     {
         $exception            = new f_db_exception_query($this->errorMsg(), $this->errorNo());
         $exception->Query     = $this->_query;
-        $exception->_metadata = array('Query' => 'mysql');
+        $exception->_metadata = array('Query' => 'mysqli');
 
         return $exception;
     }

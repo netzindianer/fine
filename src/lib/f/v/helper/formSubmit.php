@@ -1,6 +1,6 @@
 <?php
 
-class f_v_helper_formSubmit extends f_v_helper_formElement
+class f_v_helper_formSubmit extends f_v_helper_formElementAbstract
 {
 
     public function helper($sName = 'submit', $mVal = null, $aAttr = array(),

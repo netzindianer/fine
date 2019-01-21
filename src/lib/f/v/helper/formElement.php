@@ -1,15 +1,11 @@
 <?php
 
-abstract class f_v_helper_formElement
+class f_v_helper_formElement
 {
 
-    protected function _renderAttr($aAttr)
+    public function helper(f_form_element $element)
     {
-        $render = "";
-        foreach ($aAttr as $k => $v) {
-            $render .= ' ' . htmlspecialchars($k) . '="' . htmlspecialchars($v) . '"';
-        }
-        return $render;
+        return f::$c->v->{$element->helper()}($element->name(), $element->val(), $element->attr(), $element->option(), $element->separator());
     }
-
+    
 }

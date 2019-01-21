@@ -2,7 +2,8 @@
 
 class f_error
 {
-    
+
+    const RENDER_FORMAT_NEG = 'RENDER_FORMAT_NEG';
     const RENDER_FORMAT_HTML = 'RENDER_FORAMT_HTML';
     const RENDER_FORMAT_TEXT = 'RENDER_FORAMT_TEXT';
 
@@ -21,37 +22,37 @@ class f_error
      * @var string Error or exception message
      */
     public $msg;
-    
+
     /**
      * @var int Exception code, default 0
      */
     public $code;
-    
+
     /**
      * @var string File
      */
     public $file;
-    
+
     /**
      * @var int Line
      */
     public $line;
-    
+
     /**
      * @var int|string PHP Error code or name
      */
     public $errorType;
-    
+
     /**
      * @var array Error or Exception stack trace
      */
     public $trace;
-    
+
     /**
-     * @var Exception 
+     * @var Exception
      */
     public $exception;
-    
+
     protected $_throwError;
     protected $_renderFormat = self::RENDER_FORMAT_HTML;
 
@@ -130,7 +131,7 @@ class f_error
         else {
 
             $this->_clear();
-            
+
             $this->msg       = $str;
             $this->code      = $no;
             $this->file      = $file;
@@ -148,16 +149,15 @@ class f_error
             if ($this->render()) {
                 $this->_renderError();
             }
-            
+
             return true;
         }
     }
 
     public function handleException($exception)
     {
-
         $this->_clear();
-        
+
         try {
             $this->exception = $exception;
             $this->msg       = $exception->getMessage();
@@ -169,14 +169,15 @@ class f_error
             if ($this->exception instanceof ErrorException) {
                 array_shift($this->trace); // removing handler call
             }
-            
+
             $oControllerError = new c_error();
             $oControllerError->error();
-            
+
             $this->onException();
             if ($this->log()) {
                 error_log($this->_renderExceptionAsString());
             }
+
             if ($this->render()) {
                 $this->_renderException();
             }
@@ -190,6 +191,7 @@ class f_error
                 echo $e;
             }
         }
+
     }
 
     public function onError()
@@ -204,7 +206,7 @@ class f_error
 
     protected function _filterConfidentialData()
     {
-        $sConnectMsg = "mysql_connect(): Access denied for user ";
+        $sConnectMsg = "mysqli_connect(): Access denied for user ";
 
         if (strncmp($this->msg, $sConnectMsg, strlen($sConnectMsg)) == 0) {
             $trace =& $this->trace;
@@ -223,7 +225,7 @@ class f_error
             return;
         }
 
-        if (! headers_sent()) {
+        if (! headers_sent() && $this->_renderFormat == self::RENDER_FORMAT_HTML) {
             header('Content-Type: text/html; charset=utf-8', TRUE, 500);
         }
 
@@ -236,14 +238,33 @@ class f_error
         $oView->trace     = $this->trace;
         $oView->error     = $this;
         ob_end_clean();
-        echo $oView->renderPath('./lib/f/error/exception.view');
 
+        if($this->_renderFormat == self::RENDER_FORMAT_NEG) {
+            $this->_toNegJson($oView->renderPath('./lib/f/error/exception.view'));
+        } else {
+            echo $oView->renderPath('./lib/f/error/exception.view');
+        }
+    }
 
+    protected function _toNegJson($string) {
+        if(!headers_sent()) {
+            header('Content-Type: application/json', true, 200);
+        }
+        echo json_encode(array(
+            'head' => array("status" => "ok"),
+            'body' => array(
+              "content" => $string,
+            ),
+        ));
     }
 
     protected function _renderError()
     {
-        echo $this->_renderErrorAsString();
+        if($this->_renderFormat == self::RENDER_FORMAT_NEG) {
+            $this->_toNegJson($this->_renderErrorAsString());
+        } else {
+            echo $this->_renderErrorAsString();
+        }
     }
 
     protected function _renderExceptionAsString()
@@ -257,7 +278,7 @@ class f_error
     protected function _renderErrorAsString()
     {
         return $this->_formatAsString(
-            $this->errorType, $this->code, $this->msg, 
+            $this->errorType, $this->code, $this->msg,
             $this->file,      $this->line, $this->trace
         );
     }
@@ -271,8 +292,6 @@ class f_error
             $return .= "\n#$k " . $v['class'] . $v['type'] . $v['function']
                      . "(" . f_debug::dumpFunctionArgs($v['args']) .")"
                      . " " .$v['file'] . ":" . $v['line'];
-
-            ;
         }
         $return .= "\n#".(++$k)." {main}\n";
 

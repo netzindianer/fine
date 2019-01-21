@@ -8,13 +8,13 @@
  *  $sis->id('./cron.sis');
  *  if ($sis->begin()) {
  *      // do single instance cron job
+ *      $sis->end();
  *  }
  *
  * ## Sis begins:
  *      - when `begin` method returns true,
  *      - when method `begin` does not throws f_sis_exception_running (if `throwException` is on).
  * ## Sis ends:
- *      - when php script ends,
  *      - on demand using method `end`.
  *
  * ## How it works
@@ -39,6 +39,7 @@ class f_sis
     protected $_id;
     protected $_cleanup        = false;
     protected $_throwException = false;
+    protected $_time           = 86400; // 24h
 
     /**
      * Static constructor
@@ -92,6 +93,21 @@ class f_sis
         $this->_throwException = $bThrowException;
         return $this;
     }
+    
+    /**
+     * Set/get maximum time for sis
+     * 
+     * @param int $iSeconds
+     * @return f_sis|int
+     */
+    public function time($iSeconds = null)
+    {
+        if (func_num_args() == 0) {
+            return $this->_time;
+        }
+        $this->_time = $iSeconds;
+        return $this;
+    }
 
     /**
      * Begin sis
@@ -108,13 +124,15 @@ class f_sis
             if (!is_writable($this->_id)) {
                 throw new f_sis_exception_notWritable("File `{$this->_id}` not writable");
             }
-            $pid = trim(file_get_contents($this->_id));
-            if (posix_kill($pid, 0)) {
-                if ($this->_isProcessAlive($pid)) {
-                    if ($this->_throwException) {
-                        throw new f_sis_exception_running("Sis `{$this->_id}` already running");
+            if ($this->_time == 0 || time() <= filemtime($this->_id) + $this->_time) { // after $this->_time we dont check if process is alive
+                $pid = trim(file_get_contents($this->_id));
+                if (posix_kill($pid, 0)) {
+                    if ($this->_isProcessAlive($pid)) {
+                        if ($this->_throwException) {
+                            throw new f_sis_exception_running("Sis `{$this->_id}` already running");
+                        }
+                        return false;
                     }
-                    return false;
                 }
             }
         }
@@ -146,5 +164,5 @@ class f_sis
         exec('ps ' . $iPID, $state);
         return count($state) >= 2;
     }
-
+    
 }

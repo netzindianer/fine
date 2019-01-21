@@ -733,7 +733,7 @@ class f_image
             $transparencyIndex = imagecolortransparent($this->_resource);
             $transparencyColor = array('red' => 255, 'green' => 255, 'blue' => 255);
 
-            if ($transparencyIndex >= 0) {
+            if ($transparencyIndex >= 0 && $transparencyIndex < imagecolorstotal($this->_resource)) {
                 $transparencyColor = imagecolorsforindex($this->_resource, $transparencyIndex);
             }
 

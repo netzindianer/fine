@@ -1,6 +1,6 @@
 <?php
 
-class f_v_helper_formCheckbox extends f_v_helper_formElement
+class f_v_helper_formCheckbox extends f_v_helper_formElementAbstract
 {
 
     public function helper($sName = 'checkbox', $mVal = null, $aAttr = array(),

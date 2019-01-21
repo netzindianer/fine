@@ -12,4 +12,15 @@ class f_c_helper_cut
         return $sText;
     }
 
+    public function hash($sString, $length = 255, $spliter = '...')
+    {
+        // jezeli sie miesci to nic nie skracamy
+        if (strlen($sString) <= $length) {
+            return $sString;
+        }
+        
+        return substr($sString, 0, $length - 40 - strlen($spliter)) . $spliter . sha1($sString);
+        
+    }
+
 }

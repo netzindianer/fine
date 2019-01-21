@@ -1,6 +1,6 @@
 <?php
 
-class f_v_helper_formPassword extends f_v_helper_formElement
+class f_v_helper_formPassword extends f_v_helper_formElementAbstract
 {
 
     public function helper($sName = 'password', $mVal = null, $aAttr = array())

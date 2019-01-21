@@ -1,6 +1,6 @@
 <?php
 
-class f_v_helper_formMatrixRadio extends f_v_helper_formElement
+class f_v_helper_formMatrixRadio extends f_v_helper_formElementAbstract
 {
     
     public function helper($sName = 'radio', $mVal = null, $aAttr = array(), $aOption = array())

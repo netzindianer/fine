@@ -14,7 +14,7 @@ class c_cron extends f_c_action
     }
     
     /**
-     * Czysci folder /data/tmp/ z starych niepotrzebnych plikow
+     * Czysci folder /cdn/tmp/ z starych niepotrzebnych plikow
      */
     protected function _cleanDataTmpDir()
     {
@@ -40,7 +40,7 @@ class c_cron extends f_c_action
         }
 
         // handle notifiaction
-        c_tool_error_notify::_($config)->handle();
+        f_tool_error_notify::_($config)->handle();
     }
     
 }

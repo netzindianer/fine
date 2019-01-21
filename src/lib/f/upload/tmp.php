@@ -3,7 +3,7 @@
 class f_upload_tmp
 {
     
-    const DIR = 'data/tmp/';
+    const DIR = 'cdn/tmp/';
     
     protected $_token;
     protected $_name;

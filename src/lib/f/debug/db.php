@@ -29,7 +29,6 @@ class f_debug_db
     
     public function __call($name, $arguments)
     {
-
         /* @var $debug f_debug */
         $debug = $this->_c->debug;
 
@@ -46,13 +45,13 @@ class f_debug_db
                         );
             $result = $this->_db->result();
             
-            if (is_resource($result)) { // select
+            if ($result instanceof mysqli_result) { // select
 
                 $iSelected = $this->_db->countSelected();
 
                 if ($iSelected) {
 
-                    mysql_data_seek($result, 0);
+                    mysqli_data_seek($result, 0);
                     $rows   = array();
                     $j      = 0;
                     $method = in_array($name, array('col', 'cols', 'val', 'rowNum', 'rowsNum', 'lastId'))
@@ -68,7 +67,7 @@ class f_debug_db
                         $j++;
                     }
                     $debug->log($rows, 'Selected rows: ' . $iSelected , f_debug::LOG_TYPE_TABLE);
-                    mysql_data_seek($result, 0);
+                    mysqli_data_seek($result, 0);
                     
                 }
                 

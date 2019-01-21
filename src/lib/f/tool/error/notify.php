@@ -1,6 +1,6 @@
 <?php
 
-class c_tool_error_notify extends f_c
+class f_tool_error_notify
 {
     const TMP_FOLDER = 'tmp';
     
